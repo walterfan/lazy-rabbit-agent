@@ -14,7 +14,8 @@ docker-compose up -d
 
 ## Document
 
-* [Graph RAG](doc/graph_rag.md
+* [Graph RAG](doc/graph_rag.md)
+* [Langchain Overview](doc/langchain_overview.md)
 
 ## Glossaries
 
