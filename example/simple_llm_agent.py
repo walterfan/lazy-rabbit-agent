@@ -14,10 +14,21 @@ logger.add(sys.stdout,
 
 class LlmAgent:
 
-    def __init__(self, api_key, base_url, model):
-        self._client = OpenAI(api_key=api_key,
-            base_url=base_url)
+    def __init__(self, **kwargs):
+        api_key = kwargs.get("api_key", os.getenv("DS_LLM_API_KEY"))
+        base_url = kwargs.get("base_url", os.getenv("DS_LLM_BASE_URL"))
+        model = kwargs.get("model", "deepseek-coder")
+
+        self._client = OpenAI(api_key=api_key, base_url=base_url)
         self._model = model
+
+    def send_messages(self, messages, tools):
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            tools=tools
+        )
+        return response.choices[0].message
 
     def ask_question(self, question: str):
 
