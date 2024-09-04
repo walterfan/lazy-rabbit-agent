@@ -16,4 +16,6 @@ bcrypt==4.0.1
 celery==5.4.0
 redis==5.0.8
 flower==2.0.1
-langchain
+langchain==0.2.16
+langchain-community==0.2.16
+langchain-openai==0.1.23

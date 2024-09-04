@@ -12,10 +12,22 @@ docker-compose up -d
 
 ```
 
-## Document
+## Documents
 
-* [Graph RAG](doc/graph_rag.md)
-* [Langchain Overview](doc/langchain_overview.md)
+* [如何通过知识图谱做大语言模型的 RAG](doc/graph_rag.md)
+* [集成大语言模型的应用](doc/llm_integration.md)
+* [Langchain 简介](doc/langchain_overview.md)
+* [Langchain 快速开始](doc/langchain_overview.md)
+
+## Examples
+
+* [Simple LLM Agent](example/simple_llm_agent.py): 一个简单的 LLM Client 的封装
+* [langchina demo 1](example/langchain_demo_1.py): 演示如何利用 langchain 做自然语言文本的结构化分析
+* [langchina demo 2](example/langchain_demo_2.py): 演示如何利用 langchain 及其 WebBaseLoader 分析博客文章
+* [langchina server](example/langchain_demo_2.py): 演示如何使用 FastAPI 来暴露 langchain API
+* [LLM FIM example](example/llm_fim_exam.py): 演示 LLM 的 FIM (Fill In the Middle) 功能
+* [LLM Function Call example](example/llm_function_call.py): 演示 LLM 的 Function Call 功能
+
 
 ## Glossaries
 
