@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+from typing import Type
+from pydantic import BaseModel
+from typing import Iterable
+import instructor
 from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletionMessage
 from dotenv import load_dotenv
@@ -26,14 +30,62 @@ def str2bool(arg):
 class LlmAgent:
 
     def __init__(self, **kwargs):
-        api_key = kwargs.get("api_key", os.getenv("DS_LLM_API_KEY"))
-        base_url = kwargs.get("base_url", os.getenv("DS_LLM_BASE_URL"))
-        model = kwargs.get("model", "deepseek-chat")
+        api_key = kwargs.get("api_key", os.getenv("LLM_API_KEY"))
+        base_url = kwargs.get("base_url", os.getenv("LLM_BASE_URL"))
+        model = kwargs.get("model", os.getenv("LLM_MODEL"))
         stream = kwargs.get("stream", False)
         logger.debug(f"base_url={base_url}, model={model} stream={stream}")
         self._client = OpenAI(api_key=api_key, base_url=base_url)
+        self._instructor = instructor.from_openai(self._client)
+
         self._model = model
         self._stream = stream
+
+    def get_json_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
+        messages = [{"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}]
+
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            response_format={
+                'type': 'json_object'
+            },
+
+            max_tokens = kwargs.get("max_token", 8192),
+            temperature = kwargs.get("temperature", 0.5),
+            stream = kwargs.get("stream", False),
+        )
+        return response.choices[0].message.content
+
+    def get_objects_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
+        messages = [{"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}]
+
+        user_objects = self._instructor.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            response_model=Iterable[user_model],
+            max_tokens = kwargs.get("LLM_MAX_TOKEN", 4096),
+            temperature = kwargs.get("LLM_TEMPERATURE", 0.5),
+            stream = kwargs.get("stream", False),
+        ) # type: ignore
+        return user_objects
+
+    def get_object_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
+        messages = [{"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}]
+
+        user_object = self._instructor.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            response_model=user_model,
+            max_tokens = kwargs.get("LLM_MAX_TOKEN", 4096),
+            temperature = kwargs.get("LLM_TEMPERATURE", 0.5),
+            stream = kwargs.get("stream", False),
+        ) # type: ignore
+        return user_object
+
 
     def send_messages(self, messages, tools) -> ChatCompletionMessage:
         response = self._client.chat.completions.create(

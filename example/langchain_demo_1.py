@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -17,8 +18,8 @@ logger.add(sys.stdout,
 
 llm = ChatOpenAI(
     model='deepseek-chat',
-    openai_api_key=os.getenv("DS_LLM_API_KEY"),
-    openai_api_base=os.getenv("DS_LLM_BASE_URL"),
+    openai_api_key=os.getenv("LLM_API_KEY"),
+    openai_api_base=os.getenv("LLM_BASE_URL"),
     max_tokens=4096
 )
 
