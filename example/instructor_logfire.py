@@ -22,15 +22,18 @@ class MultipleUserData(BaseModel):
     queries: list[str]
 
 app = FastAPI()
-client = AsyncLlmAgent()
-logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all"))
+agent = AsyncLlmAgent()
+#logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all"))
+logfire.configure(service_name='lazy-llm-agent')
+logfire.instrument_pydantic()
+logfire.instrument_openai(agent.get_llm_client(), suppress_other_instrumentation=True)
 logfire.instrument_fastapi(app)
 
 @app.post("/user", response_model=UserDetail)
 async def endpoint_function(data: UserData) -> UserDetail:
     system_prompt = "You are a smart AI assitant"
     user_prompt = f"Extract: `{data.query}`"
-    user_detail = await client.get_object_response(system_prompt, user_prompt, UserDetail)
+    user_detail = await agent.get_object_response(system_prompt, user_prompt, UserDetail)
 
     return user_detail
 
@@ -39,7 +42,7 @@ async def extract_many_users(data: MultipleUserData):
     async def extract_user(query: str):
         system_prompt = "You are a smart AI assitant"
         user_prompt = f"Extract: `{data.query}`"
-        user_detail = await client.get_object_response(system_prompt, user_prompt, UserDetail)
+        user_detail = await agent.get_object_response(system_prompt, user_prompt, UserDetail)
 
         logfire.info("/User returning", value=user_detail)
         return user_detail
@@ -51,7 +54,7 @@ async def extract_many_users(data: MultipleUserData):
 async def extract(data: UserData):
     system_prompt = "You are a smart AI assitant"
     user_prompt = f"Extract: `{data.query}`"
-    users = await client.get_objects_response(system_prompt, user_prompt, UserDetail, stream=True)
+    users = await agent.get_objects_response(system_prompt, user_prompt, UserDetail, stream=True)
 
     async def generate():
         with logfire.span("Generating User Response Objects"):

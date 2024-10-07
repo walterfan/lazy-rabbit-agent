@@ -43,9 +43,8 @@ class AsyncLlmAgent:
         self._model = model
         self._stream = stream
 
-        logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all"))
-        logfire.instrument_openai(self._client, suppress_other_instrumentation=False)
-
+    def get_llm_client(self):
+        return self._client
 
     async def get_str_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         messages = [{"role": "system", "content": system_prompt},
