@@ -1,5 +1,6 @@
 version: "3"
 services:
+
   memgraph:
     image: memgraph/memgraph:2.19.0
     container_name: memgraph
@@ -8,6 +9,10 @@ services:
       - "7444:7444"
     networks:
       - llm_agent_network
+    volumes:
+      - memgraph_data:/var/lib/memgraph
+      - memgraph_log:/var/log/memgraph
+      - memgraph_etc:/etc/memgraph
 
   nginx:
     # default ports 80, 443 - expose mapping as needed to host
@@ -31,7 +36,7 @@ services:
   web:
     container_name: llm_agent
     build: ../backend
-    image: llm_agent
+    image: lazy-rabbit-agent
     command: ["sh", "-c", "uvicorn main:app --reload --host 0.0.0.0"]
     ports:
       - "8000:8000"
@@ -45,7 +50,7 @@ services:
   celery_worker:
     container_name: celery_worker
     build: ../backend
-    image: echo_llm_agent
+    image: lazy-rabbit-agent
     command: ["sh", "-c", "celery -A worker.celery_app worker -B -l info"]
     volumes:
       - ../backend:/app
@@ -56,22 +61,44 @@ services:
     networks:
       - llm_agent_network
 
-  celery_flower:
-    container_name: celery_flower
-    build: ../backend
-    image: echo_llm_agent
-    command: ["sh", "-c", "celery -A worker.celery_app flower --port=5555"]
+  db:
+    container_name: mariadb
+    image: mariadb:10-focal
+    command: '--default-authentication-plugin=mysql_native_password'
+    restart: always
     volumes:
-      - ../backend:/app
-    env_file:
-      - ../backend/.env
+      - db-data:/var/lib/mysql
+      - ./db/password.txt:/run/secrets/db-password
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 3306
+      - 33060
     ports:
-      - 5555:5555
+      - "3306:3306"
+      - "33060:33060"
+    # adminer - bring up only as needed - bypasses nginx
+  adminer:
+    # default port 8080
+    image: adminer:4
+    container_name: adminer
+    restart: unless-stopped
     depends_on:
-      - web
-    networks:
-      - llm_agent_network
-
+      - db
+    ports:
+      - "9000:8080"
+volumes:
+  db-data:
+      driver: local
+  memgraph_data:
+    driver: local
+  memgraph_log:
+    driver: local
+  memgraph_etc:
+    driver: local
+    
 networks:
   llm_agent_network:
     driver: bridge

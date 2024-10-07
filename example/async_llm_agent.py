@@ -3,13 +3,13 @@ from typing import Type
 from pydantic import BaseModel
 from typing import Iterable
 import instructor
-from openai import OpenAI, AsyncOpenAI
+from openai import AsyncOpenAI
 from openai.types.chat.chat_completion import ChatCompletionMessage
 from dotenv import load_dotenv
 import os, sys
 import argparse
 from loguru import logger
-
+import logfire
 
 load_dotenv()
 logger.add(sys.stdout,
@@ -27,7 +27,7 @@ def str2bool(arg):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-class LlmAgent:
+class AsyncLlmAgent:
 
     def __init__(self, **kwargs):
         api_key = kwargs.get("api_key", os.getenv("LLM_API_KEY"))
@@ -36,18 +36,22 @@ class LlmAgent:
         stream = kwargs.get("stream", False)
         logger.debug(f"base_url={base_url}, model={model} stream={stream}")
 
-        self._client = OpenAI(api_key=api_key, base_url=base_url)
+        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
         self._instructor = instructor.from_openai(self._client)
 
         self._model = model
         self._stream = stream
 
-    def get_str_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
+        logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all"))
+        logfire.instrument_openai(self._client, suppress_other_instrumentation=False)
+
+
+    async def get_str_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}]
 
-        response = self._client.chat.completions.create(
+        response = await self._client.chat.completions.create(
             model=self._model,
             messages=messages,
             max_tokens = kwargs.get("max_token", 4096),
@@ -56,11 +60,11 @@ class LlmAgent:
         )
         return response.choices[0].message.content
 
-    def get_json_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
+    async def get_json_response(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}]
 
-        response = self._client.chat.completions.create(
+        response = await self._client.chat.completions.create(
             model=self._model,
             messages=messages,
             response_format={
@@ -73,11 +77,11 @@ class LlmAgent:
         )
         return response.choices[0].message.content
 
-    def get_objects_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
+    async def get_objects_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
         messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}]
 
-        user_objects = self._instructor.chat.completions.create(
+        user_objects = await self._instructor.chat.completions.create(
             model=self._model,
             messages=messages,
             response_model=Iterable[user_model],
@@ -87,11 +91,11 @@ class LlmAgent:
         ) # type: ignore
         return user_objects
 
-    def get_object_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
+    async def get_object_response(self, system_prompt: str, user_prompt: str, user_model: Type[BaseModel], **kwargs) -> list:
         messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}]
 
-        user_object = self._instructor.chat.completions.create(
+        user_object = await self._instructor.chat.completions.create(
             model=self._model,
             messages=messages,
             response_model=user_model,
@@ -102,17 +106,17 @@ class LlmAgent:
         return user_object
 
 
-    def send_messages(self, messages, tools) -> ChatCompletionMessage:
-        response = self._client.chat.completions.create(
+    async def send_messages(self, messages, tools) -> ChatCompletionMessage:
+        response = await self._client.chat.completions.create(
             model=self._model,
             messages=messages,
             tools=tools
         )
         return response.choices[0].message
 
-    def ask_question(self, question: str) -> str:
+    async def ask_question(self, question: str) -> str:
 
-        response = self._client.chat.completions.create(
+        response = await self._client.chat.completions.create(
             model=self._model,
             messages=[
                 {'role': 'user', 'content': question}
@@ -139,24 +143,10 @@ if __name__ == "__main__":
     parser.add_argument('--question', '-q', dest='question', default="请翻译英文 'hello world' 为中文", help='you question')
 
     args = parser.parse_args()
-    if (args.action == "ask"):
-        logger.info(f"User> {args.question}")
-        agent = LlmAgent(api_key=os.getenv("SF_LLM_API_KEY"), base_url=os.getenv("SF_LLM_BASE_URL"),
-                         model=args.model, stream=args.stream)
-        answer = agent.ask_question(args.question)
-        if not args.stream:
-            logger.info(f"Model> {answer}")
-    elif (args.action == "test"):
-        logger.info(f"User> {args.question}")
-        agent = LlmAgent(api_key=os.getenv("SF_LLM_API_KEY"),
-            base_url=os.getenv("SF_LLM_BASE_URL"),
-            model=args.model, stream=args.stream)
-        system_prompt  = "你是一个翻译家"
-        user_prompt = "请翻译英文 'hello world' 为中文"
-        answer = agent.get_str_response(system_prompt, user_prompt)
 
-        logger.info(f"Model> {answer}")
+    if (args.action=="test"):
+        print("TBD.")
     else:
         print("example:")
-        print("\t./ask_llm.py -a test")
+        print("\t./async_llm_agent.py -a test")
     logger.info("Goodbye :)")

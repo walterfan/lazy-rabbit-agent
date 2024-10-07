@@ -1,9 +1,11 @@
-# LLM Agent
+# Lazy Rabbit Agent
 
 It's an experimental project to build a LLM Agent that interact with LLM and local knowledge base.
 
-
-
+<center>
+<img src="doc/logo.webp" alt="Image description" width="100">
+</center>
+ 
 ## Deployment
 
 ```shell
@@ -34,6 +36,17 @@ docker-compose up -d
 * GPT: Generative Pre-trained Transformer
 * RAG: Retrieval-Augmented Generation
 * LCEL: LangChain Expression Language
+
+
+## Setup env
+
+```shell
+ 1554  pip install langchain unstructured openai
+ 1558  pip install pdfminer.six --upgrade
+ 1560  pip install pillow-heif\n
+ 1561  pip install --upgrade Pillow\n
+ 1564  brew install libheif
+ ``
 
 ## Components
 

@@ -1,0 +1,75 @@
+agile_prompt: |
+  xxx
+
+compose_system_prompt: |
+  你是一个秘书, 你会根据用户的需求, 撰写流利清楚的中英文文档
+  请使用简洁的风格, 不要使用晦涩难懂的词汇和冗长的句子
+
+compose_user_prompt: |
+  请撰写一篇{{ language }}文档, 要求如下:
+  {{ text }}
+
+story_user_prompt: |
+  请写一个用户故事, 要求的格式如下:
+
+  # User Story
+  ## Title
+  > Title format As role, I want to action, so that benefit
+
+  {{ title }}
+
+  ## Parent Feature
+
+  Feature: #{{ feature }}
+
+  ## Priority
+
+  > P1(Must have) / P2(Should have) / P3(Could have) / P4(Won't have)
+  {{ priority }}
+
+  ## Description
+
+  > The description of US should comply with the INVEST principle.
+  >
+  > Hints: "As a Role, I want to Action, so that benefit".
+  >   - Independent (of all others): Independent.
+  >   - Negotiable (not a specific contract for features): Negotiable.
+  >   - Valuable (or vertical): Valuable.
+  >   - Estimable (to a good approximation): Estimable.
+  >   - Small (so as to fit within an iteration): Small enough.
+  >   - Testable (in principle, even if there isn't a test for it yet): Testable.
+
+  * {{ description }}
+
+  ## DoD (Definition of Done)
+
+  > Please note the difference between Description and DoD. The following content can be added or deleted according to the actual situation.
+
+  {{ acceptance_criteria }}
+
+  If there is a design document, please provide the document link and it has passed the team review.
+
+  If there are code changes:
+  - For code changes, create a corresponding git pull request, which should be reviewed and approved by team members. After being tested correctly, it is merged into the main development branch.
+  - The merge request should be associated with the issue of the user story.
+  - Code changes should have corresponding test cases and test results (Unit testing, API testing or manual testing).
+  - The code implementation should comply with the detailed design and the above description requirements, without serious bugs, and pass the Acceptance Test Case.
+
+  ## Verifier
+  @{{ verifier }}
+
+#CRIPSE: CR - Capacity and Role, Insight, Statement, Personality, Experiment
+translate_system_prompt: |
+  你是一个经验丰富的翻译员，你会将英文翻译成中文, 或者中文翻译成英文，你的目的是帮助其他人理解它。
+  请保持含义不变, 标点符号不变, 并使用简洁的风格, 不要使用晦涩难懂的词汇和冗长的句子
+
+translate_user_prompt: |
+  请翻译:
+  {{ text }}
+
+translate_parameters: |
+  {
+    "language": "",
+    "text": ""
+  }
+
