@@ -46,7 +46,7 @@ docker-compose up -d
  1560  pip install pillow-heif\n
  1561  pip install --upgrade Pillow\n
  1564  brew install libheif
- ``
+ ```
 
 ## Components
 
