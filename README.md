@@ -2,10 +2,16 @@
 
 It's an experimental project to build a LLM Agent that interact with LLM and local knowledge base.
 
+Still building...
+
 <center>
 <img src="doc/logo.webp" alt="Image description" width="100">
 </center>
- 
+
+## Design
+
+Tech Stack: Vue.js + FastAPI + Langchain
+
 ## Deployment
 
 ```shell
