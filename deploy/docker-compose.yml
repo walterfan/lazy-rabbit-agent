@@ -1,18 +1,6 @@
 version: "3"
-services:
 
-  memgraph:
-    image: memgraph/memgraph:2.19.0
-    container_name: memgraph
-    ports:
-      - "7687:7687"
-      - "7444:7444"
-    networks:
-      - llm_agent_network
-    volumes:
-      - memgraph_data:/var/lib/memgraph
-      - memgraph_log:/var/log/memgraph
-      - memgraph_etc:/etc/memgraph
+services:
 
   nginx:
     # default ports 80, 443 - expose mapping as needed to host
@@ -26,12 +14,12 @@ services:
       - "1980:80"    # http
       - "1981:443"   # https
     volumes:
-      - ../frontend:/var/www/html/web
+      - ../frontend/dist:/var/www/html/web
       - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
       - ${NGINX_SSL_CERTS}:/etc/ssl:ro
       - ${NGINX_LOGS}:/var/log/nginx
     networks:
-      - llm_agent_network
+      - lazy_rabbit_network
 
   web:
     container_name: llm_agent
@@ -45,7 +33,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
     networks:
-      - llm_agent_network
+      - lazy_rabbit_network
 
   celery_worker:
     container_name: celery_worker
@@ -59,7 +47,7 @@ services:
     depends_on:
       - web
     networks:
-      - llm_agent_network
+      - lazy_rabbit_network
 
   db:
     container_name: mariadb
@@ -92,13 +80,7 @@ services:
 volumes:
   db-data:
       driver: local
-  memgraph_data:
-    driver: local
-  memgraph_log:
-    driver: local
-  memgraph_etc:
-    driver: local
-    
+
 networks:
-  llm_agent_network:
+  lazy_rabbit_network:
     driver: bridge
