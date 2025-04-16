@@ -6,7 +6,7 @@ import zlib
 import base64
 from typing import Optional, Literal, Union
 from pathlib import Path
-
+import subprocess
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
@@ -145,7 +145,7 @@ class MindmapGenerator:
             A PlantUML mindmap diagram as a string.
         """
         try:
-            print("\n--- Generating Mindmap ---")
+            print(f"\n--- Generating Mindmap: {str}")
             mindmap = self.mindmap_chain.invoke({"summary": summary})
             print(mindmap)
             return mindmap
@@ -168,6 +168,12 @@ class MindmapGenerator:
             raise
 
 
+    def render_plantuml_image(self, puml_file: str):
+        # download plantuml.jar：https://plantuml.com/download
+        cmd = ["java", "-jar", "plantuml.jar", puml_file]
+        #cmd = ["plantuml", puml_file]
+        subprocess.run(cmd, check=True)
+
     def generate_image(self, plantuml_text: str, output_file: Optional[str] = None,
                       format: Literal["png", "svg", "pdf"] = "png") -> str:
         """Generate an image from PlantUML text using the PlantUML server API.
@@ -182,7 +188,8 @@ class MindmapGenerator:
             The path to the generated image file.
         """
         try:
-            print(f"\n--- Generating {format.upper()} Image ---")
+            print(f"\n--- Generating {format.upper()} Image ---{plantuml_text}")
+
             
             # Encode the PlantUML text
             encoded = encode(plantuml_text)
@@ -242,10 +249,11 @@ class MindmapGenerator:
                 mindmap = f.read()
 
         if generate_image:
-            image_path = self.generate_image(mindmap, image_output, image_format)
-            return mindmap, image_path
+            #image_path = self.generate_image(mindmap, image_output, image_format)
+            #return mindmap, image_path
+            self.render_plantuml_image(self.output_file)
 
-        return mindmap
+        return mindmap, self.output_file[:-5] + ".png"
 
 
 def main():
