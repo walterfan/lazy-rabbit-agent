@@ -1,7 +1,7 @@
 <template>
     <div class="plan-container">
       <h1>Plan</h1>
-      <p>Use this section to plan your LLM agent tasks.</p>
+      <p>Plan your task by Lazy Rabbit Agent</p>
       <CommandForm />
     </div>
   </template>

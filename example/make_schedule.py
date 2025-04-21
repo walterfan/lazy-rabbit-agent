@@ -36,7 +36,7 @@ class Scheduler:
 
 
 def demo():
-    Scheduler = Scheduler()
+    scheduler = Scheduler()
 
     input = {
         "目标": "提高编程能力",
@@ -56,7 +56,7 @@ def demo():
 
     # Process each query and print the results
     for i, query in enumerate(confidential_queries, 1):
-        response:QueryResponse = Scheduler.process_confidential_query(query)
+        response:QueryResponse = scheduler.process_confidential_query(query)
         print(f"{query} : {response.query_type}")
         """
         #> What are the key findings in the Q4 financial report? : document_content

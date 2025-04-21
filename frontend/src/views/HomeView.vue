@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import TheWelcome from '../components/LazyRabbit.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <LazyRabbit />
   </main>
 </template>

@@ -9,7 +9,7 @@ RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
 WORKDIR /app
 COPY ./app /app
 
-COPY ../pyproject.toml ../poetry.lock /app/
+#COPY ../pyproject.toml ../poetry.lock /app/
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi

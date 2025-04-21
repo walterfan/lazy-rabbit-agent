@@ -43,7 +43,7 @@
 
 .main-menu {
   height: 100%;
-  background-color: #4f78b6; /* Set menu background to match header */
+  background-color: #424249; /* Set menu background to match header */
 }
 
 /* Style menu items to be visible against the blue background */
@@ -54,7 +54,7 @@
 /* Style active menu item */
 :deep(.main-menu .el-menu-item.is-active) {
   color: #ffd04b;
-  background-color: #658fce;
+  background-color: gray;
 }
 
 /* Change hover effect */
