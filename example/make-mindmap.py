@@ -110,7 +110,7 @@ class MindmapGenerator:
         """
         try:
             print(f"Fetching {url}")
-            response = requests.get(url)
+            response = requests.get(url, verify=False)
             response.raise_for_status()  # Raise an exception for HTTP errors
             return response.text
         except Exception as e:
