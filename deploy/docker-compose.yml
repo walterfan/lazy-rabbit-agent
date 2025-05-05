@@ -64,7 +64,8 @@ services:
     ports:
       - "3306:3306"
       - "33060:33060"
-    # adminer - bring up only as needed - bypasses nginx
+    networks:
+      - lazy_rabbit_network
   adminer:
     # default port 8080
     image: adminer:4
@@ -74,6 +75,16 @@ services:
       - db
     ports:
       - "9000:8080"
+    networks:
+      - lazy_rabbit_network
+  redis:
+    container_name: redis
+    image: redis:7.2.5-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - lazy_rabbit_network
 volumes:
   db-data:
       driver: local
