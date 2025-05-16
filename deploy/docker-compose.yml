@@ -24,7 +24,7 @@ services:
     image: lazy-rabbit-agent
     command: ["sh", "-c", "uvicorn main:app --reload --host 0.0.0.0"]
     ports:
-      - "8000:8000"
+      - "1975:8000"
     volumes:
       - ./.env:/app/.env
     environment:
@@ -53,11 +53,10 @@ services:
     restart: always
     volumes:
       - db-data:/var/lib/mysql
-      - ./db/password.txt:/run/secrets/db-password
     environment:
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_ROOT_HOST=%
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
     expose:
       - 3306
       - 33060
@@ -74,7 +73,7 @@ services:
     depends_on:
       - db
     ports:
-      - "9000:8080"
+      - "1978:8080"
     networks:
       - lazy_rabbit_network
   redis:

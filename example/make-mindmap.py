@@ -3,15 +3,14 @@ import os
 import argparse
 import requests
 import zlib
-import base64
 from typing import Optional, Literal, Union
 from pathlib import Path
 import subprocess
-from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
-
+import dotenv
+dotenv.load_dotenv()
 def encode(plantuml_text):
     zlibbed_str = zlib.compress(plantuml_text.encode('utf-8'))
     compressed_string = zlibbed_str[2:-4]  # strip zlib headers
@@ -48,7 +47,6 @@ class MindmapGenerator:
             output_file: Path to save the generated mindmap PlantUML file.
             plantuml_server: URL of the PlantUML server to use for image generation.
         """
-        load_dotenv()
 
         # Initialize configuration
         self.output_file = output_file
@@ -58,7 +56,7 @@ class MindmapGenerator:
         api_key = os.getenv("LLM_API_KEY")
         base_url = os.getenv("LLM_BASE_URL")
         model_name = os.getenv("LLM_MODEL")
-        
+        print(f"api_key={api_key}, base_url={base_url}, model_name={model_name}")
         if not api_key or not base_url or not model_name:
             raise ValueError("LLM_API_KEY or LLM_BASE_URL or LLM_MODEL environment variable is not set")
         

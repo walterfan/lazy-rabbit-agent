@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import os, sys
 import argparse
 from loguru import logger
-import logfire
+import httpx
 
 load_dotenv()
 logger.add(sys.stdout,
@@ -30,18 +30,16 @@ def str2bool(arg):
 class AsyncLlmAgent:
 
     def __init__(self, **kwargs):
-        api_key = kwargs.get("api_key", os.getenv("LLM_API_KEY"))
-        base_url = kwargs.get("base_url", os.getenv("LLM_BASE_URL"))
-        model = kwargs.get("model", os.getenv("LLM_MODEL"))
-        stream = kwargs.get("stream", False)
-        logger.debug(f"base_url={base_url}, model={model} stream={stream}")
+        self._api_key = kwargs.get("api_key", os.getenv("LLM_API_KEY"))
+        self._base_url = kwargs.get("base_url", os.getenv("LLM_BASE_URL"))
+        self._model = kwargs.get("model", os.getenv("LLM_MODEL"))
+        self._stream = kwargs.get("stream", False)
+        logger.debug(f"base_url={self._base_url}, model={self._model} stream={self._stream}")
 
-        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self._http_client = httpx.AsyncClient(verify=False)
+        self._client = AsyncOpenAI(api_key=self._api_key, base_url=self._base_url, http_client=self._http_client)
 
         self._instructor = instructor.from_openai(self._client)
-
-        self._model = model
-        self._stream = stream
 
     def get_llm_client(self):
         return self._client
