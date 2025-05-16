@@ -36,9 +36,9 @@ services:
     container_name: celery_worker
     build: ../backend
     image: lazy-rabbit-agent
-    command: ["sh", "-c", "celery -A worker.celery_app worker -B -l info"]
+    command: ["sh", "-c", "celery -A worker.celery_app worker --loglevel=INFO -E"]
     volumes:
-      - ../backend:/app
+      - ./.env:/app/.env
     env_file:
       - ./.env
     depends_on:

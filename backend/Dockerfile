@@ -13,7 +13,7 @@ COPY ./requirements.txt /app/
 #RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple poetry && \
 #    poetry config virtualenvs.create false && \
 #    poetry install --no-interaction --no-ansi
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--reload"]
