@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import os, sys
 import argparse
 from loguru import logger
-
+import httpx
 
 load_dotenv()
 logger.add(sys.stdout,
@@ -36,7 +36,9 @@ class LlmAgent:
         stream = kwargs.get("stream", False)
         logger.debug(f"base_url={base_url}, model={model} stream={stream}")
 
-        self._client = OpenAI(api_key=api_key, base_url=base_url)
+        self._http_client = httpx.Client(verify=False)
+        #self._client = AsyncOpenAI(api_key=self._api_key, base_url=self._base_url, http_client=self._http_client)
+        self._client = OpenAI(api_key=api_key, base_url=base_url, http_client=self._http_client)
 
         self._instructor = instructor.from_openai(self._client)
 

@@ -55,6 +55,13 @@ async def health():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return {"time": current_time, "state": "up"}
 
+@router.get("/prompts")
+async def get_prompts():
+    pass
+
+@router.get("/commands")
+async def get_commands():
+    pass
 
 @router.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str, token: str):
@@ -99,4 +106,3 @@ async def websocket_endpoint(websocket: WebSocket, username: str, token: str):
                 await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)
     except WebSocketDisconnect:
         g_ws_manager.disconnect(username)
-        

@@ -11,7 +11,7 @@ services:
       - "1980:80"    # http
       - "1981:443"   # https
     volumes:
-      - ../frontend/dist:/var/www/html/web
+      - ../frontend/dist:/var/www/html
       - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
       - ${NGINX_SSL_CERTS}:/etc/ssl:ro
       - ${NGINX_LOGS}:/var/log/nginx
