@@ -4,22 +4,23 @@ from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMess
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 import os, sys
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 #os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY")
+#os.environ["OPENAI_API_KEY"] = os.getenv("LLM_API_KEY")
 os.environ["USER_AGENT"] = "waltertest"
-
+http_client = httpx.Client(verify=False)
 chat_model = ChatOpenAI(
-    model='deepseek-chat',
+    model=os.getenv("LLM_MODEL"),
     openai_api_key=os.getenv("LLM_API_KEY"),
     openai_api_base=os.getenv("LLM_BASE_URL"),
-    max_tokens=4096
+    max_tokens=4096,
+    http_client=http_client
 )
-
 store = {}
 
 def get_session_history(session_id: str) -> BaseChatMessageHistory:

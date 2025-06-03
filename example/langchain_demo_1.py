@@ -3,31 +3,39 @@ from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import BaseOutputParser
-
+from openai import OpenAI
+import requests
 import pprint
 import os, sys
 import json
 from loguru import logger
 from dotenv import load_dotenv
-
+import httpx
 load_dotenv()
 logger.add(sys.stdout,
            format="{time} {message}",
            filter="client",
            level="DEBUG")
 
+http_client = httpx.Client(verify=False)
 llm = ChatOpenAI(
-    model='deepseek-chat',
+    model=os.getenv("LLM_MODEL"),
     openai_api_key=os.getenv("LLM_API_KEY"),
     openai_api_base=os.getenv("LLM_BASE_URL"),
-    max_tokens=4096
+    max_tokens=4096,
+    http_client=http_client
 )
+
 
 
 class JsonOutputParser(BaseOutputParser[dict]):
     def parse(self, text: str) -> List[str]:
         text = text.lstrip("```json").rstrip("```")
-        return json.loads(text)
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as e:
+            print("JSON decoding failed:", e)
+            print("Response content:", text)
 
 
 system_template = """你是一个能解释医生说话内容的助手, 当医生输入一段话, 你会解析其内容将它转换成 JSON 格式"""

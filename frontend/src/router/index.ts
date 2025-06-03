@@ -1,17 +1,29 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import PlanView from '../views/PlanView.vue'
 import DoView from '../views/DoView.vue'
 import CheckView from '../views/CheckView.vue'
 import AdjustView from '../views/AdjustView.vue'
+import PromptView from '../views/PromptView.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue')
+    },
     {
       path: '/',
       name: 'home',
       component: HomeView
+    },
+    {
+      path: '/prompt',
+      name: 'prompt',
+      component: PromptView
     },
     {
       path: '/about',
@@ -49,6 +61,24 @@ const router = createRouter({
       redirect: '/plan'
     }
   ]
+})
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore()
+  authStore.checkAuth() // Check auth state on each route change
+  
+  // Define routes that don't require authentication
+  const publicRoutes = ['/login']
+  
+  // If not authenticated and trying to access a protected route
+  if (!authStore.isAuthenticated && !publicRoutes.includes(to.path)) {
+    return '/login'
+  }
+  
+  // If authenticated and trying to access login page
+  if (authStore.isAuthenticated && to.path === '/login') {
+    return '/' // Redirect to home if already logged in
+  }
 })
 
 export default router

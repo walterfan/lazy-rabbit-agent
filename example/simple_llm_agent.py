@@ -150,9 +150,9 @@ if __name__ == "__main__":
             logger.info(f"Model> {answer}")
     elif (args.action == "test"):
         logger.info(f"User> {args.question}")
-        agent = LlmAgent(api_key=os.getenv("SF_LLM_API_KEY"),
-            base_url=os.getenv("SF_LLM_BASE_URL"),
-            model=args.model, stream=args.stream)
+        agent = LlmAgent(api_key=os.getenv("LLM_API_KEY"),
+            base_url=os.getenv("LLM_BASE_URL"),
+            model=os.getenv("LLM_MODEL"), stream=args.stream)
         system_prompt  = "你是一个翻译家"
         user_prompt = "请翻译英文 'hello world' 为中文"
         answer = agent.get_str_response(system_prompt, user_prompt)

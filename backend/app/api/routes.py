@@ -25,7 +25,7 @@ g_ws_manager = ws_util.ConnectionManager()
 debug_flag = os.getenv("DEBUG_FLAG", False)
 
 # Route to get a token
-@router.post("/token")
+@router.post("/login")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
 
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -54,14 +54,6 @@ async def search_prompts(search_prompts_request: SearchPromptsRequest, prompt_te
 async def health():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return {"time": current_time, "state": "up"}
-
-@router.get("/prompts")
-async def get_prompts():
-    pass
-
-@router.get("/commands")
-async def get_commands():
-    pass
 
 @router.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str, token: str):

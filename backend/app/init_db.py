@@ -1,27 +1,33 @@
 #!/usr/bin/env python3
+import os, sys
 from dotenv import load_dotenv
 load_dotenv()
 import argparse
 from sqlalchemy.orm import Session
-from database import SessionLocal  # Import the session from your database config
-from user.models import User, Customer, Role, Permission, role_permission_table  # Import your models
 from datetime import datetime
 from passlib.context import CryptContext
 
+from database import SessionLocal, engine, Base
+
+# Import all models
+from user.models import User, Customer, Role, Permission, role_permission_table
+from prompt.models import Prompt, Tag, PromptTag
+
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+pwd_of_admin = os.getenv("DB_PWD")
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def init_db():
     db: Session = SessionLocal()
-
+    # create all tables
+    Base.metadata.create_all(bind=engine)
     try:
         # Check if any customers exist
         if db.query(Customer).first() is None:
             # Add default customer
-            default_customer = Customer(name="Default Customer", uuid="0085c2b7-41b8-422b-87c9-467d4c97536b", description="fanyamin.com")
+            default_customer = Customer(name="Default Customer", uuid="00917908-33e0-4cb1-9b8d-64e420213f7b", description="Lazy Rabbit Studio")
             db.add(default_customer)
 
         # Check if any roles exist
@@ -52,7 +58,7 @@ def init_db():
             default_user = User(
                 username="admin",
                 email="admin@fanyamin.com",
-                hashed_password=get_password_hash("password"),
+                hashed_password=get_password_hash(pwd_of_admin),
                 create_time=datetime.now(),
                 update_time=datetime.now(),
                 customer_id=default_customer.id,  # Associate user with default customer
@@ -130,7 +136,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--action','-a', action='store', dest='action', help='specify action: init|change_password|add_user')
-    parser.add_argument('--host', '-i', dest='host', default="www.fanyamin.com", help='db host')
+    parser.add_argument('--host', '-i', dest='host', default="192.168.104.226", help='db host')
     parser.add_argument('--port', '-p', dest='port', default="3306", help='db port')
     parser.add_argument('--user', '-u', dest='username', default="admin", help='specify username')
     parser.add_argument('--pass', '-s', dest='password', help='specify password')

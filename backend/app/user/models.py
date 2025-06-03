@@ -21,8 +21,8 @@ class Task(Base):
     title = Column(String(256), index=True)
     description = Column(String(2048))
 
-    create_time = Column(DateTime, server_default=func.now())  
-    update_time = Column(DateTime, onupdate=func.now())  
+    create_time = Column(DateTime, server_default=func.now())
+    update_time = Column(DateTime, onupdate=func.now())
 
 class UserStatus(enum.Enum):
     PENDING = "pending"

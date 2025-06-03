@@ -4,10 +4,6 @@ It's an experimental project to build a LLM Agent that interact with LLM and loc
 
 Still building...
 
-<center>
-<img src="doc/logo.webp" alt="Image description" width="100">
-</center>
-
 ## Design
 
 Tech Stack: Vue.js + FastAPI + Langchain
@@ -15,6 +11,7 @@ Tech Stack: Vue.js + FastAPI + Langchain
 ## Deployment
 
 ```shell
+cp .env.example ./deploy/.env
 cd deploy
 docker-compose up -d
 
@@ -45,6 +42,22 @@ docker-compose up -d
 
 
 ## Setup env
+
+### Create DB and environment file
+* create datbase
+
+```sql
+
+CREATE DATABASE IF NOT EXISTS lra;
+
+CREATE USER IF NOT EXISTS 'your_username'@'%' IDENTIFIED BY 'your_password';
+
+GRANT ALL PRIVILEGES ON lra.* TO 'your_username'@'%';
+
+FLUSH PRIVILEGES;
+```
+
+## Install dependencies
 
 ```shell
  1554  pip install langchain unstructured openai

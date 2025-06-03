@@ -1,10 +1,12 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+chroma_store/
 *.py[cod]
 *$py.class
 node_modules/
 # C extensions
 *.so
+*.db
 vectordb/
 password.txt
 # Distribution / packaging

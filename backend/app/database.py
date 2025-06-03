@@ -12,7 +12,7 @@ db_name = os.getenv("DB_NAME")
 
 SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}"
 print(f"SQLALCHEMY_DATABASE_URL={SQLALCHEMY_DATABASE_URL}")
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

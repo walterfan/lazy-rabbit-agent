@@ -10,6 +10,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from prompt.routes import router as prompt_router
 from user.routes import router as user_router
 from api.routes import router as api_router
 from agile.routes import router as agile_router
@@ -33,9 +34,10 @@ app.add_middleware(
 Instrumentator().instrument(app).expose(app)
 
 # Include the routers of sub  modules
-app.include_router(agile_router, prefix="/agile")
+app.include_router(agile_router, prefix="/agile/api/v1")
 app.include_router(api_router, prefix="/api/v1")
-app.include_router(user_router, prefix="/user")
+app.include_router(user_router, prefix="/user/api/v1")
+app.include_router(prompt_router, prefix="/prompt/api/v1")
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
