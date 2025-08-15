@@ -20,6 +20,27 @@
             </template>
             </el-input>
         </div>
+         <div class="import-container">
+          <el-upload
+            action=""
+            :show-file-list="false"
+            :before-upload="handleBeforeUpload"
+            accept=".csv,.json,.yaml,.yml"
+          >
+            <el-button
+              type="primary"
+              :icon="FolderOpened"
+            ></el-button>
+          </el-upload>
+          <el-button
+            type="success"
+            @click="handleImport"
+            :icon="Upload"
+            :disabled="!selectedFile"
+            style="margin-left: 10px"
+          >Import</el-button>
+        </div>
+
         <div class="action-buttons">
             <el-button
             type="primary"
@@ -34,9 +55,10 @@
 
 
     <el-table :data="prompts" style="width: 100%, border: 1px solid #dcdfe6">
-      <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="Name" width="180" />
       <el-table-column prop="description" label="Description" show-overflow-tooltip />
+      <el-table-column prop="systemPrompt" label="systemPrompt" show-overflow-tooltip />
+      <el-table-column prop="userPrompt" label="userPrompt" show-overflow-tooltip />
       <el-table-column label="Tags" width="200">
         <template #default="{ row }">
           <el-tag
@@ -103,7 +125,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Search, Plus, Edit, Delete, FolderOpened, Upload } from '@element-plus/icons-vue'
 import PromptForm from './PromptForm.vue'
 import { API_CONFIG } from '@/config'
 
@@ -196,6 +218,7 @@ const submitForm = async () => {
     try {
       await promptForm.value.submitForm()
       await fetchPrompts() // Refresh the prompt list after successful submission
+      dialogVisible.value = false
     } catch (error) {
       console.error('Form submission error:', error)
     }
@@ -205,6 +228,38 @@ const submitForm = async () => {
 const handleSubmitSuccess = () => {
   dialogVisible.value = false
   fetchPrompts()
+}
+
+const selectedFile = ref<File | null>(null)
+
+const handleBeforeUpload = (file: File) => {
+  selectedFile.value = file
+  return false // Prevent automatic upload
+}
+
+const handleImport = async () => {
+  if (!selectedFile.value) return
+  
+  try {
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+    
+    await axios.post(`${API_CONFIG.BASE_URL}/prompt/api/v1/prompts/import`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    )
+    
+    ElMessage.success('Prompts imported successfully')
+    selectedFile.value = null
+    fetchPrompts() // Refresh the list
+  } catch (error) {
+    console.error('Import failed:', error)
+    ElMessage.error('Failed to import prompts')
+  }
 }
 
 // Initial fetch
@@ -239,9 +294,16 @@ onMounted(fetchPrompts)
   max-width: 500px;
 }
 
+.import-container {
+  display: flex;
+  gap: 8px;
+  margin-left: 40px;
+}
+
 .action-buttons {
   margin-left: auto; /* Pushes button to the right */
-  margin-right: 40px
+  margin-right: 40px;
+  flex-shrink: 0;
 }
 
 </style>

@@ -13,7 +13,7 @@ import os
 from database import get_db, engine
 from user.auth import authenticate_user, create_access_token, verify_access_token
 from agile.worker import Translator, Composer
-from api.models import SearchPromptsRequest, SearchPromptsResponse
+from api.domains import SearchPromptsRequest, SearchPromptsResponse, CommandRequest
 from service.llm_service import PromptTemplates
 # Initialize the router
 router = APIRouter()
@@ -50,27 +50,29 @@ async def search_prompts(search_prompts_request: SearchPromptsRequest, prompt_te
     
     return resp
 
+@router.post("/commands")
+async def execute_command(commandRequest: CommandRequest):
+    logger.info(f"exectue_command {commandRequest}")
+
+
+
 @router.get("/health")
 async def health():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return {"time": current_time, "state": "up"}
 
 @router.websocket("/ws/{username}")
-async def websocket_endpoint(websocket: WebSocket, username: str, token: str):
+async def websocket_endpoint(websocket: WebSocket, username: str):
+    await g_ws_manager.accept(websocket, username)
+    token = g_ws_manager.get_auth_header(websocket)
+    logger.debug(f"websocket {username} with token {token} connected")
+    verify_result = verify_access_token(token)
+    if (not verify_result) :
+        rs_dict = {"desc": "Invalid Token or Invitation code.", "code": 401}
+        await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)
+        await g_ws_manager.disconnect(username, 1008, "Invalid Token or Invitation code.")
+        return
 
-    if token == "202410032143":
-        logger.debug(f"websocket {username} connected")
-    else:
-        logger.debug(f"websocket {username} with token {token} connected")
-        verify_result = verify_access_token(token)
-        if (not verify_result) :
-            rs_dict = {"desc": "Invalid Token or Invitation code.", "code": 401}
-            await g_ws_manager.connect(websocket, username)
-            await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)
-            await g_ws_manager.disconnect(username)
-            return
-
-    await g_ws_manager.connect(websocket, username)
     try:
         while True:
             data = await websocket.receive_text()
@@ -82,14 +84,14 @@ async def websocket_endpoint(websocket: WebSocket, username: str, token: str):
                 await translator.execute({"text": msg.get_field_value("input")})
                 rs_dict = {"time": current_time, "result": translator.get_result(), "code": 200}
                 await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)
-            elif  msg.get_command() == "compose":
+            elif msg.get_command() == "compose":
                 composer = Composer()
                 await composer.execute({"text": msg.get_field_value("input"), "language": "中文"})
                 rs_dict = {"time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "result": composer.get_result(),
                     "code": 200}
                 await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)
-            elif  msg.get_command() == "summaize":
+            elif msg.get_command() == "summaize":
                 active_users = g_ws_manager.get_active_connections()
                 rs_dict = {"users": {', '.join(active_users)}, "code": 200}
                 await g_ws_manager.send_message(json.dumps(rs_dict, indent=2, ensure_ascii=False), username)

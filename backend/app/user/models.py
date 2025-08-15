@@ -6,67 +6,86 @@ import enum
 
 # Association table for the many-to-many relationship between Role and Permission
 role_permission_table = Table(
-    'role_permissions',
+    'role_permission',
     Base.metadata,
-    Column('role_id', Integer, ForeignKey('roles.id'), primary_key=True),
-    Column('permission_id', Integer, ForeignKey('permissions.id'), primary_key=True)
+    Column('role_id', String(256), ForeignKey('role.id'), primary_key=True),
+    Column('permission_id', String(256), ForeignKey('permission.id'), primary_key=True)
 )
 
+class BaseObject(Base):
+    __abstract__ = True
+    """Base object with UUID primary key"""
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+
+    created_by = Column(String(256), index=True)
+    updated_by = Column(String(256), index=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(id={self.id}, created_at={self.created_at})"
+
+
+class Realm(BaseObject):
+    __tablename__ = "realm"
+
+    name = Column(String(256), unique=True, index=True)
+    description = Column(String(2048))
+    users = relationship("User", back_populates="realm")
 
 # Define the models that mapping the DB tables
-class Task(Base):
-    __tablename__ = "tasks"
+class Task(BaseObject):
+    __tablename__ = "task"
 
-    id = Column(Integer, primary_key=True, index=True)
     title = Column(String(256), index=True)
     description = Column(String(2048))
+    realm_id = Column(String(36), ForeignKey("realm.id"))
 
-    create_time = Column(DateTime, server_default=func.now())
-    update_time = Column(DateTime, onupdate=func.now())
+    deadline = Column(DateTime)
+    schedule_time = Column(DateTime)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
+
 
 class UserStatus(enum.Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
-class User(Base):
-    __tablename__ = "users"
+class User(BaseObject):
+    __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, index=True)
     username = Column(String(256), unique=True, index=True)
     email = Column(String(256), unique=True, index=True)
     hashed_password = Column(String(256))
     status = Column(Enum(UserStatus), default=UserStatus.PENDING)
 
-    customer_id = Column(Integer, ForeignKey("customers.id"))
-    customer = relationship("Customer", back_populates="users")
-
-    role_id = Column(Integer, ForeignKey("roles.id"))
+    role_id = Column(String(36), ForeignKey("role.id"))
     role = relationship("Role", back_populates="users")
 
-    create_time = Column(DateTime, server_default=func.now())  
-    update_time = Column(DateTime, onupdate=func.now())
+    realm_id = Column(String(36), ForeignKey("realm.id"))
+    realm = relationship("Realm", back_populates="users")
+
+    customer_id = Column(String(36), ForeignKey("customer.id"))
+    customer = relationship("Customer", back_populates="users")
 
     def __repr__(self):
         return f"{self.username}, {self.email}, {self.hashed_password}"
 
-class Customer(Base):
-    __tablename__ = "customers"
+class Customer(BaseObject):
+    __tablename__ = "customer"
 
-    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256), unique=True, index=True)
     description = Column(String(2048))
     uuid = Column(String(36), default=uuid.uuid4())
     users = relationship("User", back_populates="customer")
 
-    create_time = Column(DateTime, server_default=func.now())  
-    update_time = Column(DateTime, onupdate=func.now())  
+    realm_id = Column(String(36), ForeignKey("realm.id"))
 
 
-class Role(Base):
-    __tablename__ = "roles"
+class Role(BaseObject):
+    __tablename__ = "role"
 
-    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256), unique=True, index=True)
 
     users = relationship("User", back_populates="role")
@@ -78,24 +97,21 @@ class Role(Base):
         back_populates="roles"
     )
 
-    create_time = Column(DateTime, server_default=func.now())
-    update_time = Column(DateTime, onupdate=func.now())
+    realm_id = Column(String(36), ForeignKey("realm.id"))
 
 
 
-class Permission(Base):
-    __tablename__ = "permissions"
+class Permission(BaseObject):
+    __tablename__ = "permission"
 
-    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256), unique=True, index=True)  # e.g., 'read', 'write', 'delete'
     
     # Relationship to roles
     roles = relationship(
-        "Role", 
-        secondary=role_permission_table, 
+        "Role",
+        secondary=role_permission_table,
         back_populates="permissions"
     )
 
-    create_time = Column(DateTime, server_default=func.now())  
-    update_time = Column(DateTime, onupdate=func.now())  
+    realm_id = Column(String(36), ForeignKey("realm.id"))
 

@@ -1,7 +1,6 @@
 <template>
     <div class="adjust-container">
-      <h1>Adjust</h1>
-      <p>Fine-tune your LLM agent parameters and settings.</p>
+      <h1>Code</h1>
       <CommandForm />
     </div>
   </template>

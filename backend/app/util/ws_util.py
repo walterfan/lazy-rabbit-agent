@@ -11,14 +11,32 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[str, WebSocket] = {}
 
-    async def connect(self, websocket: WebSocket, name: str):
+    def get_auth_header(self, websocket: WebSocket):
+        auth_header = websocket.headers.get("Authorization")
+
+        if not auth_header:
+            #await websocket.close(code=1008, reason="Authorization header missing")
+            return ""
+
+        try:
+            # Extract Bearer token
+            scheme, token = auth_header.split()
+            if scheme.lower() != "bearer":
+                raise ValueError("Invalid authentication scheme")
+            return token
+        except ValueError:
+            #await websocket.close(code=1008, reason="Invalid Authorization header format")
+            return ""
+
+    async def accept(self, websocket: WebSocket, name: str):
         await websocket.accept()
         self.active_connections[name] = websocket
 
-    def disconnect(self, name: str):
+    async def disconnect(self, name: str, code=1000, reason=""):
         if name in self.active_connections:
-            del self.active_connections[name]
-
+            websocket = self.active_connections.pop(name)
+            await websocket.close(code, reason)
+            #del self.active_connections[name]
     async def send_message(self, message: str, name: str):
         websocket = self.active_connections.get(name)
         if websocket:

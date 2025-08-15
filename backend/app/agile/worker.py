@@ -36,15 +36,14 @@ class Worker:
 
     def get_result(self):
         return self._task.result
-class Composer(Worker):
 
+class Composer(Worker):
     def __init__(self, prefix="compose"):
         super().__init__(prefix)
 
 
 
 class Translator(Worker):
-
     def __init__(self, prefix="translate"):
         super().__init__(prefix)
 

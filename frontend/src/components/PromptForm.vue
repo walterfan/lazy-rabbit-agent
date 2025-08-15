@@ -80,6 +80,7 @@ const props = defineProps({
 
 // Form data - initialize with props if available
 const form = reactive({
+  id: props.initialData?.id || '',
   name: props.initialData?.name || '',
   description: props.initialData?.description || '',
   systemPrompt: props.initialData?.systemPrompt || '',
@@ -93,6 +94,7 @@ const form = reactive({
 watch(() => props.initialData, (newValue) => {
   if (newValue) {
     Object.assign(form, {
+      id: newValue.id || '',
       name: newValue.name || '',
       description: newValue.description || '',
       systemPrompt: newValue.systemPrompt || '',
@@ -129,6 +131,9 @@ const submitForm = async () => {
   loading.value = true
 
   try {
+    let response;
+    const url = `${API_CONFIG.BASE_URL}/prompt/api/v1/prompts`;
+
     // First create any new tags that don't exist
     const newTags = form.tags.filter(tagId => 
       !availableTags.value.some(t => t.id === tagId)
@@ -151,6 +156,7 @@ const submitForm = async () => {
     }
 
     const requestData = {
+      id: form.id,
       name: form.name,
       description: form.description,
       systemPrompt: form.systemPrompt,
@@ -167,10 +173,13 @@ const submitForm = async () => {
       updatedBy: form.created_by
     }
 
-    const response = await axios.post(
-      `${API_CONFIG.BASE_URL}/prompt/api/v1/prompts`,
-      requestData
-    )
+    if (requestData.id) {
+      // ID exists -> PUT request (update)
+      response = await axios.put(`${url}/${requestData.id}`, requestData);
+    } else {
+      // No ID -> POST request (create)
+      response = await axios.post(url, requestData);
+    }
 
     ElMessage.success('Prompt created successfully')
     // Reset form after successful submission
@@ -185,8 +194,10 @@ const submitForm = async () => {
 
     // Refresh available tags
     await fetchTags()
-    
+    console.log('Operation successful:', response.data);
+
   } catch (error: any) {
+    console.error('Operation failed:', error);
     ElMessage.error(`Error: ${error.response?.data?.detail || error.message}`)
   } finally {
     loading.value = false

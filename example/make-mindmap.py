@@ -9,6 +9,7 @@ import subprocess
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
+import httpx
 import dotenv
 dotenv.load_dotenv()
 def encode(plantuml_text):
@@ -51,7 +52,7 @@ class MindmapGenerator:
         # Initialize configuration
         self.output_file = output_file
         self.plantuml_server = plantuml_server.rstrip('/')
-        
+        self._patch_httpx()
         # Get API configuration from environment variables
         api_key = os.getenv("LLM_API_KEY")
         base_url = os.getenv("LLM_BASE_URL")
@@ -93,7 +94,14 @@ class MindmapGenerator:
             """
         )
         self.mindmap_chain = mindmap_prompt | self.llm | self.parser
-    
+
+    def _patch_httpx(self):
+        """Patch httpx to disable SSL verification"""
+        original_init = httpx.Client.__init__
+        def patched_init(self, *args, **kwargs):
+            kwargs['verify'] = False
+            original_init(self, *args, **kwargs)
+        httpx.Client.__init__ = patched_init
     def fetch_content(self, url: str) -> str:
         """Fetch content from a URL.
         

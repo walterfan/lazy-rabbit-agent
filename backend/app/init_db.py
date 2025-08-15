@@ -8,9 +8,9 @@ from datetime import datetime
 from passlib.context import CryptContext
 
 from database import SessionLocal, engine, Base
-
+from util.common_util import get_default_realm_id, get_default_customer_id
 # Import all models
-from user.models import User, Customer, Role, Permission, role_permission_table
+from user.models import Realm, User, Customer, Role, Permission, role_permission_table
 from prompt.models import Prompt, Tag, PromptTag
 
 # Password hashing context
@@ -23,15 +23,23 @@ def init_db():
     db: Session = SessionLocal()
     # create all tables
     Base.metadata.create_all(bind=engine)
+
     try:
-        # Check if any customers exist
-        if db.query(Customer).first() is None:
+        default_realm = db.query(Realm).first()
+        if default_realm is None:
             # Add default customer
-            default_customer = Customer(name="Default Customer", uuid="00917908-33e0-4cb1-9b8d-64e420213f7b", description="Lazy Rabbit Studio")
+            default_realm = Realm(name="Default Realm", id=get_default_realm_id(), description="Lazy Rabbit Studio")
+            db.add(default_realm)
+        # Check if any customers exist
+        default_customer = db.query(Customer).first()
+        if default_customer is None:
+            # Add default customer
+            default_customer = Customer(name="Default Customer", id=get_default_customer_id(), description="Lazy Rabbit Studio")
             db.add(default_customer)
 
         # Check if any roles exist
-        if db.query(Role).first() is None:
+        default_role = db.query(Role).first()
+        if default_role is None:
             # Add default role (Admin)
             default_role = Role(name="Admin")
             db.add(default_role)
@@ -59,8 +67,10 @@ def init_db():
                 username="admin",
                 email="admin@fanyamin.com",
                 hashed_password=get_password_hash(pwd_of_admin),
-                create_time=datetime.now(),
-                update_time=datetime.now(),
+                status='APPROVED',
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                realm_id=default_realm.id,
                 customer_id=default_customer.id,  # Associate user with default customer
                 role_id=default_role.id  # Associate user with default role
             )

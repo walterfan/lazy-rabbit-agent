@@ -44,8 +44,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return await login_for_access_token(form_data, db)
 
 @app.websocket("/ws/{name}")
-async def connect(websocket: WebSocket, name: str, token: str):
-    return await websocket_endpoint(websocket, name, token)
+async def connect(websocket: WebSocket, name: str):
+    return await websocket_endpoint(websocket, name)
 
 @app.get("/", response_class=HTMLResponse)
 async def release_notes(request: Request):

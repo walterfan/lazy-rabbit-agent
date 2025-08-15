@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime, timedelta
-
+from util.common_util import get_default_realm_id
 
 class TagBase(BaseModel):
-    id: Optional[int] = None
+    id: Optional[str] = None
     category: str
     name: str
 
@@ -18,7 +18,7 @@ class PromptBase(BaseModel):
     user_prompt: str = Field(..., alias="userPrompt")
     tags: Optional[List[TagBase]] = None
     variables: List[str] = None
-
+    #realm_id: Optional[str] = Field(..., alias="realmId")
     class Config:
         from_attributes = True  # This replaces orm_mode = True
         populate_by_name = True  # This replaces allow_population_by_field_name
@@ -32,9 +32,9 @@ class PromptCreate(PromptBase):
         populate_by_name = True  # This replaces allow_population_by_field_name
 
 class PromptResponse(PromptBase):
-    id: int
-    created_at: int = Field(..., alias="createdAt")
-    updated_at: int = Field(..., alias="updatedAt")
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
     created_by: str = Field(..., alias="createdBy")
     updated_by: str = Field(..., alias="updatedBy")
 
