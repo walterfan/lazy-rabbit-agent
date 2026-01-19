@@ -63,7 +63,7 @@ def search_wiki(query):
 
 tools_list = """
 1. get_weather(city: str) - Returns the current weather for a given city.
-2. search_wik(query: str) - Returns a summary from Wikipedia for the given query.
+2. search_wiki(query: str) - Returns a summary from Wikipedia for the given query.
 """
 
 # System prompt with embedded tools list
@@ -93,7 +93,7 @@ def send_messages(messages):
     )
     return response.choices[0].message
 
-def parse_and_execute_tools(message_content):
+def parse_and_execute_tools(message_content: str) -> tuple[bool, str]:
     """Parse JSON response from model and execute tool calls."""
     try:
         # Try to extract JSON from the message content
@@ -120,17 +120,17 @@ def parse_and_execute_tools(message_content):
                             results.append(f"get_weather({arguments['city']}) -> {result}")
                         else:
                             results.append("get_weather called but no city provided")
-                    
+
                     elif tool_name == "search_wiki":
                         if "query" in arguments:
                             result = search_wiki(arguments["query"])
                             results.append(f"search_wiki({arguments['query']}) -> {result}")
                         else:
                             results.append("search_wiki called but no query provided")
-                    
+
                     else:
                         results.append(f"Unknown tool: {tool_name}")
-            
+
             return True, "\n".join(results)
         
         return None, "No valid tools structure found in JSON"

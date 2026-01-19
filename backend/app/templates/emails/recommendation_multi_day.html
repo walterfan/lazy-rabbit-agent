@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来三天穿衣建议 - {{ city }}</title>
+    <style>
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header .subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 0;
+        }
+        .day-section {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 25px 20px;
+        }
+        .day-section:last-child {
+            border-bottom: none;
+        }
+        .day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .day-label {
+            font-size: 20px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .date-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .weather-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        .temp-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .emoji-summary {
+            font-size: 28px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #667eea;
+            margin: 15px 0 10px 0;
+        }
+        .clothing-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .clothing-item {
+            background-color: #f0f4ff;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #d0deff;
+        }
+        .advice {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .warnings {
+            background-color: #fff3cd;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #ffc107;
+            margin: 15px 0;
+        }
+        .warnings ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+        }
+        .warnings li {
+            font-size: 13px;
+            color: #856404;
+            margin: 3px 0;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 6px;
+            }
+            .header {
+                padding: 20px 15px;
+            }
+            .day-section {
+                padding: 20px 15px;
+            }
+            .day-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌤️ 未来三天穿衣建议</h1>
+            <div class="subtitle">亲，以下是{{ city }}未来三天的穿衣建议</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            {% for day in daily_recommendations %}
+            <div class="day-section">
+                <!-- Day Header -->
+                <div class="day-header">
+                    <div>
+                        <div class="day-label">{{ day.date_label }}</div>
+                        <div class="date-text">{{ day.date }}</div>
+                    </div>
+                    <div class="weather-summary">
+                        <span>{{ day.weather.condition }}</span>
+                        <span class="temp-badge">{{ day.weather.temperature_low }}°C ~ {{ day.weather.temperature_high }}°C</span>
+                    </div>
+                </div>
+
+                <!-- Emoji Summary -->
+                <div class="emoji-summary">{{ day.recommendation.emoji_summary }}</div>
+
+                <!-- Clothing Items -->
+                <div class="section-title">👔 建议穿着</div>
+                <div class="clothing-grid">
+                    {% for item in day.recommendation.clothing_items %}
+                    <span class="clothing-item">{{ item }}</span>
+                    {% endfor %}
+                </div>
+
+                <!-- Advice -->
+                <div class="section-title">💡 穿搭建议</div>
+                <div class="advice">{{ day.recommendation.advice }}</div>
+
+                <!-- Weather Warnings -->
+                {% if day.recommendation.weather_warnings and day.recommendation.weather_warnings|length > 0 %}
+                <div class="warnings">
+                    <strong>⚠️ 特别提醒</strong>
+                    <ul>
+                        {% for warning in day.recommendation.weather_warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>此邮件由 MCP Weather Server 自动生成</p>
+            <p><a href="{{ unsubscribe_url }}">退订邮件通知</a></p>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,38 +1,44 @@
 {
-  "name": "frontend",
-  "version": "0.0.0",
+  "name": "lazy-rabbit-agent-fronted",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix"
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "format": "prettier --write src/"
   },
   "dependencies": {
-    "axios": "^1.8.4",
-    "element-plus": "^2.9.7",
-    "pinia": "^3.0.1",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0",
+    "pinia": "^2.1.0",
+    "axios": "^1.6.0",
+    "@vueuse/core": "^10.7.0"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.13.9",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/eslint-config-typescript": "^14.5.0",
-    "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.21.0",
-    "eslint-plugin-vue": "~10.0.0",
-    "jiti": "^2.4.2",
-    "npm-run-all2": "^7.0.2",
-    "typescript": "~5.8.0",
-    "unplugin-auto-import": "^19.1.2",
-    "unplugin-vue-components": "^28.4.1",
-    "vite": "^6.2.1",
-    "vite-plugin-vue-devtools": "^7.7.2",
-    "vue-tsc": "^2.2.8"
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "typescript": "5.3.3",
+    "vite": "^5.0.0",
+    "vue-tsc": "^1.8.27",
+    "vitest": "^1.2.0",
+    "@vitest/ui": "^1.2.0",
+    "@vue/tsconfig": "^0.5.0",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "eslint-plugin-vue": "^9.20.0",
+    "prettier": "^3.1.0",
+    "@rushstack/eslint-patch": "^1.7.0"
   }
 }
+
+

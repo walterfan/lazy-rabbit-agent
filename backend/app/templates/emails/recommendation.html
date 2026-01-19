@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日穿衣推荐</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4a90e2;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #4a90e2;
+            margin: 0;
+            font-size: 24px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .weather-section {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .weather-section h2 {
+            margin-top: 0;
+            color: #4a90e2;
+            font-size: 18px;
+        }
+        .weather-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .weather-item {
+            flex: 1;
+            min-width: 120px;
+        }
+        .weather-item strong {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .weather-item span {
+            font-size: 16px;
+            color: #333;
+        }
+        .recommendation-section {
+            margin-bottom: 25px;
+        }
+        .recommendation-section h2 {
+            color: #4a90e2;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .clothing-items {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .clothing-items ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .clothing-items li {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .advice {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        .warnings {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .warnings ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .warnings li {
+            color: #c62828;
+            margin-bottom: 5px;
+        }
+        .emoji-summary {
+            text-align: center;
+            font-size: 24px;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        .footer a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .weather-info {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ 今日穿衣推荐</h1>
+        </div>
+
+        <div class="greeting">
+            亲，您好！
+        </div>
+
+        <div class="weather-section">
+            <h2>📍 天气信息</h2>
+            <div class="weather-info">
+                <div class="weather-item">
+                    <strong>城市</strong>
+                    <span>{{ city }}</span>
+                </div>
+                <div class="weather-item">
+                    <strong>温度</strong>
+                    <span>{{ weather.temperature }}°C</span>
+                </div>
+                <div class="weather-item">
+                    <strong>天气</strong>
+                    <span>{{ weather.condition }}</span>
+                </div>
+                <div class="weather-item">
+                    <strong>湿度</strong>
+                    <span>{{ weather.humidity }}%</span>
+                </div>
+                <div class="weather-item">
+                    <strong>风力</strong>
+                    <span>{{ weather.wind }}</span>
+                </div>
+                <div class="weather-item">
+                    <strong>日期</strong>
+                    <span>{{ date }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendation-section">
+            <h2>👔 推荐服装</h2>
+            <div class="clothing-items">
+                <ul>
+                    {% for item in recommendation.clothing_items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="recommendation-section">
+            <h2>💡 穿衣建议</h2>
+            <div class="advice">
+                {{ recommendation.advice }}
+            </div>
+        </div>
+
+        {% if recommendation.weather_warnings %}
+        <div class="recommendation-section">
+            <h2>⚠️ 天气提醒</h2>
+            <div class="warnings">
+                <ul>
+                    {% for warning in recommendation.weather_warnings %}
+                    <li>{{ warning }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="emoji-summary">
+            {{ recommendation.emoji_summary }}
+        </div>
+
+        <div class="footer">
+            <p>祝您今天穿得舒适，心情愉快！</p>
+            <p>
+                <a href="{{ unsubscribe_url }}">取消订阅</a> | 
+                <a href="#">查看历史推荐</a>
+            </p>
+            <p style="margin-top: 10px; color: #999;">
+                此邮件由 AI 穿衣推荐系统自动发送
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
+

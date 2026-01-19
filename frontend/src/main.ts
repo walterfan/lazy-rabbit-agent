@@ -1,28 +1,25 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-import axios from 'axios'
-
-import { useAuthStore } from '@/stores/auth'
 import App from './App.vue'
 import router from './router'
-
-// Configure axios
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import './assets/styles/main.css'
+import { useAuthStore } from './stores/auth'
 
 const app = createApp(App)
 const pinia = createPinia()
 
-app.use(createPinia())
-
 app.use(pinia)
 app.use(router)
 
-app.use(ElementPlus)
-
-//initialize auth state
+// Initialize auth state
 const authStore = useAuthStore()
-authStore.checkAuth()
+authStore.init()
+
+// Load user data if authenticated
+if (authStore.isAuthenticated) {
+  authStore.loadUser()
+}
 
 app.mount('#app')
+
+

@@ -1,0 +1,98 @@
+# Test Engineer Prompts Configuration
+
+system_prompt: |
+  You are an autonomous AI Test Engineer for Golang services.
+  Your goal: autonomously plan, generate, execute, diagnose, and iterate on test suites that cover functional, exception, stress, memory-leak, goroutine-leak, and performance bottleneck detection for a given Go application repository or artifact.
+
+  You MUST follow the Observe → Plan → Act → Monitor → Analyze → Learn loop until stopping criteria are met.
+
+test_types:
+  unit:
+    description: "Unit tests for isolated functions and methods"
+    go_command: "go test ./... -v -race -coverprofile=coverage.out"
+    focus_areas:
+      - "Function inputs and outputs"
+      - "Edge cases and boundary conditions"
+      - "Error handling"
+
+  integration:
+    description: "Integration tests for component interactions"
+    go_command: "go test ./... -v -tags=integration"
+    focus_areas:
+      - "Database interactions"
+      - "External service calls"
+      - "Message queue operations"
+
+  concurrency:
+    description: "Concurrency and race condition tests"
+    go_command: "go test ./... -race -count=100"
+    focus_areas:
+      - "Goroutine safety"
+      - "Channel operations"
+      - "Mutex usage"
+      - "Data races"
+
+  stress:
+    description: "Stress and load tests"
+    tools:
+      - "vegeta"
+      - "k6"
+      - "go-wrk"
+    focus_areas:
+      - "High throughput scenarios"
+      - "Latency under load"
+      - "Error rates"
+      - "Resource exhaustion"
+
+  leak:
+    description: "Memory and goroutine leak detection"
+    go_command: "go test -run TestSoak -timeout 60m"
+    profiling:
+      - "heap: go tool pprof heap.prof"
+      - "goroutine: curl /debug/pprof/goroutine"
+    focus_areas:
+      - "Long-running tests"
+      - "Resource cleanup"
+      - "Goroutine lifecycle"
+
+  benchmark:
+    description: "Performance benchmarks"
+    go_command: "go test -bench . -benchmem -benchtimeout 5m"
+    analysis:
+      - "benchstat for comparisons"
+      - "CPU profiling"
+      - "Memory allocations"
+
+go_specific_concerns:
+  - name: "Goroutine Leaks"
+    detection: "Monitor goroutine count over time"
+    tools: ["pprof goroutine profile", "runtime.NumGoroutine()"]
+
+  - name: "Race Conditions"
+    detection: "Run with -race flag"
+    tools: ["go test -race"]
+
+  - name: "Memory Leaks"
+    detection: "Compare heap profiles over time"
+    tools: ["pprof heap profile", "runtime.ReadMemStats"]
+
+  - name: "Channel Deadlocks"
+    detection: "Channel send/receive patterns"
+    tools: ["deadlock detector", "static analysis"]
+
+  - name: "Context Cancellation"
+    detection: "Proper context handling"
+    tools: ["context.WithTimeout", "context.WithCancel"]
+
+stopping_criteria:
+  - "All tests pass and no regression or leak is detected"
+  - "Maximum iterations reached"
+  - "Resource budget exceeded"
+  - "Human operator issues stop command"
+  - "Unresolvable error requiring human input"
+
+safety_rules:
+  - "Never run destructive operations without consent token"
+  - "Resource usage caps: CPU 4 cores, RAM 8GB, disk 10GB"
+  - "Network egress: do not send PII or secrets to third parties"
+  - "Timeout: 30 minutes per run by default"

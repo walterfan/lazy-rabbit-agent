@@ -1,84 +1,124 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import PlanView from '../views/PlanView.vue'
-import DoView from '../views/DoView.vue'
-import CheckView from '../views/CheckView.vue'
-import AdjustView from '../views/AdjustView.vue'
-import PromptView from '../views/PromptView.vue'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import Home from '@/views/Home.vue'
+import SignIn from '@/views/auth/SignIn.vue'
+import SignUp from '@/views/auth/SignUp.vue'
+import UserProfile from '@/views/user/UserProfile.vue'
+import Weather from '@/views/Weather.vue'
+import Recommendations from '@/views/Recommendations.vue'
+import ProfileEditor from '@/views/user/ProfileEditor.vue'
+import EmailPreferences from '@/views/EmailPreferences.vue'
+
+const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    name: 'home',
+    component: Home,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/signin',
+    name: 'signin',
+    component: SignIn,
+    meta: { requiresAuth: false, guestOnly: true },
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: SignUp,
+    meta: { requiresAuth: false, guestOnly: true },
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: UserProfile,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/profile/edit',
+    name: 'profile-edit',
+    component: ProfileEditor,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/profile/email-preferences',
+    name: 'email-preferences',
+    component: EmailPreferences,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin/users',
+    name: 'user-management',
+    component: () => import('@/views/admin/UserManagement.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/admin/email-management',
+    name: 'admin-email-management',
+    component: () => import('@/views/admin/AdminEmailManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/rbac/roles',
+    name: 'role-management',
+    component: () => import('@/views/rbac/RoleManagement.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/rbac/permissions',
+    name: 'permission-management',
+    component: () => import('@/views/rbac/PermissionManagement.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/weather',
+    name: 'weather',
+    component: Weather,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/recommendations',
+    name: 'recommendations',
+    component: Recommendations,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('@/views/NotFound.vue'),
+  },
+]
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('../views/LoginView.vue')
-    },
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView
-    },
-    {
-      path: '/prompt',
-      name: 'prompt',
-      component: PromptView
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue')
-    },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: () => import('../views/AdminView.vue')
-    },
-    {
-      path: '/plan',
-      name: 'plan',
-      component: PlanView
-    },
-    {
-      path: '/do',
-      name: 'do',
-      component: DoView
-    },
-    {
-      path: '/check',
-      name: 'check',
-      component: CheckView
-    },
-    {
-      path: '/adjust',
-      name: 'adjust',
-      component: AdjustView
-    },
-    // Redirect to plan by default
-    {
-      path: '/:pathMatch(.*)*',
-      redirect: '/plan'
-    }
-  ]
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
 })
 
-router.beforeEach((to) => {
+// Navigation guard for authentication and authorization
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
-  authStore.checkAuth() // Check auth state on each route change
-  
-  // Define routes that don't require authentication
-  const publicRoutes = ['/login']
-  
-  // If not authenticated and trying to access a protected route
-  if (!authStore.isAuthenticated && !publicRoutes.includes(to.path)) {
-    return '/login'
-  }
-  
-  // If authenticated and trying to access login page
-  if (authStore.isAuthenticated && to.path === '/login') {
-    return '/' // Redirect to home if already logged in
+  const requiresAuth = to.meta.requiresAuth
+  const guestOnly = to.meta.guestOnly
+  const requiresSuperAdmin = to.meta.requiresSuperAdmin
+  const requiresAdmin = to.meta.requiresAdmin
+
+  if (requiresAuth && !authStore.isAuthenticated) {
+    // Redirect to signin if route requires auth and user is not authenticated
+    next({ name: 'signin', query: { redirect: to.fullPath } })
+  } else if (guestOnly && authStore.isAuthenticated) {
+    // Redirect to profile if route is for guests only and user is authenticated
+    next({ name: 'profile' })
+  } else if (requiresSuperAdmin && !authStore.isSuperAdmin) {
+    // Redirect to home if route requires super_admin role and user doesn't have it
+    next({ name: 'home' })
+  } else if (requiresAdmin && !authStore.isAdmin) {
+    // Redirect to home if route requires admin role and user doesn't have it
+    next({ name: 'home' })
+  } else {
+    next()
   }
 })
 
 export default router
+
+

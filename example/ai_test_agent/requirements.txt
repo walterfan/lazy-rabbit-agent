@@ -1,0 +1,26 @@
+# AI Test Agent Requirements
+# Core dependencies for autonomous test planning and execution
+
+# LLM Integration
+openai>=1.0.0
+anthropic>=0.18.0
+
+# Agent Framework
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-anthropic>=0.1.0
+
+# Git Integration
+gitpython>=3.1.40
+
+# Data Processing
+pydantic>=2.5.0
+pyyaml>=6.0
+
+# CLI and Configuration
+click>=8.1.0
+python-dotenv>=1.0.0
+
+# Utilities
+rich>=13.7.0  # For beautiful terminal output
+jinja2>=3.1.2  # For template rendering
