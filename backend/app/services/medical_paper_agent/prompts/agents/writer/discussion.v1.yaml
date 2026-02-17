@@ -1,0 +1,30 @@
+version: "1.0"
+name: "writer_discussion"
+description: "Prompts for writing the Discussion section"
+
+prompts:
+  write_discussion:
+    template: |
+      Write the Discussion section for a {paper_type} paper.
+
+      Research Question: {research_question}
+      Key Results: {key_results}
+      References: {references}
+
+      Structure:
+      1. Summary: Restate key findings (1-2 sentences)
+      2. Interpretation: What do the results mean in context of existing literature?
+      3. Comparison: How do results compare with previous studies?
+      4. Strengths: Study strengths
+      5. Limitations: Acknowledge limitations honestly
+      6. Implications: Clinical/research implications
+      7. Conclusion: Final summary statement
+
+      Word limit: {word_limit} words
+      Every claim must be supported by a reference or the study's own data.
+    variables:
+      - paper_type
+      - research_question
+      - key_results
+      - references
+      - word_limit

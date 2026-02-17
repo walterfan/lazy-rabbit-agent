@@ -40,9 +40,9 @@ const handleSubmit = async () => {
       password: password.value,
     })
 
-    // Redirect to intended page or profile
+    // Redirect to intended page or home (agent dashboard)
     const redirect = route.query.redirect as string
-    router.push(redirect || '/profile')
+    router.push(redirect || '/')
   } catch (error: any) {
     serverError.value = error.message || 'Invalid email or password'
   }

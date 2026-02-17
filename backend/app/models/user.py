@@ -2,6 +2,7 @@ from datetime import datetime, time
 from enum import Enum
 
 from sqlalchemy import Boolean, Column, DateTime, Enum as SQLEnum, Integer, JSON, String, Text, Time
+from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 
@@ -49,6 +50,14 @@ class User(Base):
     email_send_time = Column(Time, nullable=True)  # Preferred send time (e.g., 08:00)
     email_additional_recipients = Column(JSON, nullable=True)  # List of additional email addresses
     email_preferred_city = Column(String(20), nullable=True)  # AD code for recommendation city
+
+    # Relationships for Personal Secretary agent
+    notes = relationship("Note", back_populates="user", lazy="dynamic")
+    tasks = relationship("Task", back_populates="user", lazy="dynamic")
+    reminders = relationship("Reminder", back_populates="user", lazy="dynamic")
+    chat_sessions = relationship("ChatSession", back_populates="user", lazy="dynamic")
+    learning_records = relationship("LearningRecord", back_populates="user", lazy="dynamic")
+    medical_paper_tasks = relationship("MedicalPaperTask", back_populates="user", lazy="dynamic")
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"

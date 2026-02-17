@@ -1,0 +1,29 @@
+version: "1.0"
+name: "literature_search_strategy"
+description: "Prompts for generating search strategies"
+
+prompts:
+  generate_strategy:
+    template: |
+      Generate a PubMed search strategy for this research question:
+
+      Research Question: {research_question}
+      Paper Type: {paper_type}
+
+      Create search queries using:
+      1. Primary MeSH terms
+      2. Text word alternatives
+      3. Boolean operators (AND, OR, NOT)
+      4. Filters: publication date, study type, language
+
+      Output format (JSON):
+      {{
+        "primary_query": "...",
+        "alternative_queries": ["..."],
+        "mesh_terms": ["..."],
+        "date_range": "YYYY:YYYY",
+        "study_type_filters": ["..."]
+      }}
+    variables:
+      - research_question
+      - paper_type

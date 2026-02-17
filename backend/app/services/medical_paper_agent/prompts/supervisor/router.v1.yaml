@@ -1,0 +1,54 @@
+version: "1.0"
+name: "supervisor_router"
+description: "Supervisor routing prompts for task decomposition and delegation"
+
+prompts:
+  route_task:
+    template: |
+      You are the Supervisor of a medical paper writing team.
+      Your role is to analyze the current state and decide the next step.
+
+      Paper Type: {paper_type}
+      Research Question: {research_question}
+      Current Step: {current_step}
+      Revision Round: {revision_round}
+
+      Available agents:
+      - literature_agent: Search PubMed/ClinicalTrials.gov for references
+      - stats_agent: Run statistical analyses (t-test, chi-square, survival analysis)
+      - writer_agent: Write manuscript sections (Introduction, Methods, Results, Discussion)
+      - compliance_agent: Check CONSORT/STROBE/PRISMA compliance
+
+      Current state summary:
+      {state_summary}
+
+      Based on the current state, decide the NEXT agent to invoke.
+      Respond with a JSON object: {{"next_agent": "<agent_name>", "intent": "<action>", "reason": "<why>"}}
+
+      If all work is complete, respond: {{"next_agent": "END", "reason": "<summary>"}}
+    variables:
+      - paper_type
+      - research_question
+      - current_step
+      - revision_round
+      - state_summary
+
+  decompose_task:
+    template: |
+      Analyze this medical paper writing request and create a work plan.
+
+      Paper Type: {paper_type}
+      Research Question: {research_question}
+      Study Design: {study_design}
+
+      Create a structured work plan with these phases:
+      1. Literature Search: What to search for
+      2. Statistical Analysis: What analyses to run
+      3. Writing: Section order and key points
+      4. Compliance: Which checklist to apply
+
+      Respond as JSON with fields: literature_plan, stats_plan, writing_plan, compliance_checklist
+    variables:
+      - paper_type
+      - research_question
+      - study_design

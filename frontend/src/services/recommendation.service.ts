@@ -45,6 +45,20 @@ class RecommendationService {
   }
 
   /**
+   * Get the API base URL for EventSource connections.
+   * In development, use the backend directly. In production, use relative URLs.
+   */
+  private getApiBaseUrl(): string {
+    // Check for explicit environment variable
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    // In development, connect to the backend directly
+    // Default to same origin (works when proxied or in production)
+    return '';
+  }
+
+  /**
    * Create EventSource for streaming recommendations
    * Note: EventSource doesn't support custom headers, so we pass token as query param
    */
@@ -54,7 +68,8 @@ class RecommendationService {
     params.append('token', token); // Pass token as query param for EventSource
     if (date) params.append('date', date);
 
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/recommendations/stream?${params.toString()}`;
+    const baseUrl = this.getApiBaseUrl();
+    const url = `${baseUrl}/api/v1/recommendations/stream?${params.toString()}`;
     
     return new EventSource(url);
   }
@@ -68,7 +83,8 @@ class RecommendationService {
     params.append('city', city);
     params.append('token', token);
 
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/recommendations/stream/3days?${params.toString()}`;
+    const baseUrl = this.getApiBaseUrl();
+    const url = `${baseUrl}/api/v1/recommendations/stream/3days?${params.toString()}`;
     return new EventSource(url);
   }
 
@@ -78,7 +94,8 @@ class RecommendationService {
     params.append('token', token);
     params.append('days', String(days));
 
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/recommendations/stream/3days?${params.toString()}`;
+    const baseUrl = this.getApiBaseUrl();
+    const url = `${baseUrl}/api/v1/recommendations/stream/3days?${params.toString()}`;
     return new EventSource(url);
   }
 }

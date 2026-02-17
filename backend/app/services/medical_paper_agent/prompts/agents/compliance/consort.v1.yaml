@@ -1,0 +1,55 @@
+version: "1.0"
+name: "compliance_consort"
+description: "CONSORT 2010 checklist for Randomized Controlled Trials"
+
+prompts:
+  check_consort:
+    template: |
+      Check this RCT manuscript against the CONSORT 2010 checklist (25 items).
+
+      Manuscript:
+      {manuscript}
+
+      CONSORT 2010 Items to check:
+      1a. Identification as RCT in title
+      1b. Structured summary (participants, interventions, results)
+      2a. Scientific background and rationale
+      2b. Specific objectives or hypotheses
+      3a. Trial design description
+      3b. Important changes to methods after trial start
+      4a. Eligibility criteria for participants
+      4b. Settings and locations
+      5. Interventions described in detail
+      6a. Pre-specified primary and secondary outcomes
+      6b. Changes to trial outcomes after start
+      7a. Sample size determination
+      7b. Interim analyses and stopping guidelines
+      8a. Sequence generation method
+      8b. Type of randomization
+      9. Allocation concealment mechanism
+      10. Implementation of allocation sequence
+      11a. Blinding (who was blinded)
+      11b. Description of similarity of interventions
+      12a. Statistical methods for primary/secondary outcomes
+      12b. Methods for additional analyses
+      13a. Participant flow (numbers at each stage)
+      13b. Losses and exclusions with reasons
+      14a. Dates of recruitment and follow-up
+      14b. Why trial ended or was stopped
+      15. Baseline demographic and clinical characteristics
+      16. Number of participants analyzed per group
+      17a. Primary outcome results with confidence intervals
+      17b. Binary outcomes: absolute and relative effect sizes
+      18. Results of additional analyses
+      19. All important harms or unintended effects
+      20. Trial limitations
+      21. Generalizability
+      22. Interpretation consistent with results
+      23. Registration number and registry name
+      24. Where the full protocol can be accessed
+      25. Sources of funding and support
+
+      For each item, respond:
+      {{"item_id": "1a", "status": "PASS|WARN|FAIL", "finding": "...", "suggestion": "..."}}
+    variables:
+      - manuscript

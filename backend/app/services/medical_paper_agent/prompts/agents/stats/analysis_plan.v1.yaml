@@ -1,0 +1,29 @@
+version: "1.0"
+name: "stats_analysis_plan"
+description: "Prompts for statistical analysis planning"
+
+prompts:
+  create_plan:
+    template: |
+      Create a statistical analysis plan for this study:
+
+      Paper Type: {paper_type}
+      Study Design: {study_design}
+      Primary Outcome: {primary_outcome}
+      Sample Size: {sample_size}
+      Groups: {groups}
+
+      Plan should include:
+      1. Primary analysis method and justification
+      2. Secondary analyses
+      3. Sensitivity analyses
+      4. Handling of missing data
+      5. Multiple comparison adjustment (if applicable)
+
+      Output as JSON with fields: primary_analysis, secondary_analyses, sensitivity_analyses, missing_data_strategy
+    variables:
+      - paper_type
+      - study_design
+      - primary_outcome
+      - sample_size
+      - groups

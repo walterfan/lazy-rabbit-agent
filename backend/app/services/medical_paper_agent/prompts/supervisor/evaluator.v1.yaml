@@ -1,0 +1,42 @@
+version: "1.0"
+name: "supervisor_evaluator"
+description: "Supervisor prompts for evaluating sub-agent output quality"
+
+prompts:
+  evaluate_output:
+    template: |
+      You are reviewing the output from {agent_name} for a {paper_type} paper.
+
+      Intent: {intent}
+      Agent Output:
+      {output}
+
+      Evaluate the quality:
+      1. Is the output complete? (all required fields present)
+      2. Is the output accurate? (no obvious errors)
+      3. Is the output relevant? (addresses the research question)
+
+      Research Question: {research_question}
+
+      Respond as JSON:
+      {{"approved": true/false, "score": 0-100, "feedback": "...", "issues": [...]}}
+    variables:
+      - agent_name
+      - paper_type
+      - intent
+      - output
+      - research_question
+
+  evaluate_compliance:
+    template: |
+      Review the compliance check results for this {paper_type} paper.
+
+      Compliance Report:
+      {compliance_report}
+
+      If failed items > 0, identify which sections need revision.
+      Respond as JSON:
+      {{"needs_revision": true/false, "sections_to_revise": [...], "priority_items": [...]}}
+    variables:
+      - paper_type
+      - compliance_report

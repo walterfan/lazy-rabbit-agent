@@ -1,0 +1,68 @@
+# Utility Tool Prompts
+version: "1.0"
+name: "utility_tools"
+description: "Prompts for utility tools"
+
+prompts:
+  format_weather_response:
+    description: "Format weather data into a user-friendly response"
+    template: |
+      Format the following weather data into a friendly, helpful response:
+      
+      City: {city}
+      Temperature: {temperature}°C
+      Weather: {weather}
+      Wind: {wind}
+      Humidity: {humidity}%
+      
+      Provide:
+      1. A brief, conversational summary of the weather
+      2. A practical suggestion (e.g., what to wear, whether to bring umbrella)
+      
+      Keep it concise and helpful.
+    variables:
+      - city
+      - temperature
+      - weather
+      - wind
+      - humidity
+
+  format_note:
+    description: "Format user input into a structured note"
+    template: |
+      Format the following content into a structured note:
+      
+      Content: {content}
+      
+      Extract:
+      1. A short title (max 50 characters)
+      2. Category (if discernible): task, idea, reminder, reference, other
+      3. Key points (if applicable)
+      
+      Return as JSON:
+      {{"title": "...", "category": "...", "key_points": [...]}}
+    variables:
+      - content
+
+  parse_reminder:
+    description: "Parse natural language into a reminder"
+    template: |
+      Parse the following reminder request:
+      
+      "{input}"
+      
+      Extract:
+      1. What to remind about (the task/event)
+      2. When to remind (relative or absolute time)
+      3. Any recurrence (daily, weekly, etc.)
+      
+      Return as JSON:
+      {{
+        "task": "what to remind",
+        "time_expression": "when to remind (original text)",
+        "recurrence": "none" | "daily" | "weekly" | "monthly" | null
+      }}
+      
+      If the time is unclear, set time_expression to null.
+    variables:
+      - input

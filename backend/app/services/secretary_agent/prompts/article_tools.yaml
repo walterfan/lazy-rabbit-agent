@@ -1,0 +1,120 @@
+# Article Processing Prompts
+version: "1.0"
+name: "article_tools"
+description: "Prompts for article processing (translation, summary, mindmap)"
+
+prompts:
+  translate_paragraph:
+    description: "Translate a paragraph to bilingual format"
+    template: |
+      Translate the following English paragraph to Chinese.
+      
+      Rules:
+      - Keep technical terms in English with Chinese explanation in parentheses
+      - Preserve code blocks without translation
+      - Preserve URLs without translation
+      - Make the Chinese translation natural and fluent
+      
+      English paragraph:
+      {paragraph}
+      
+      Provide only the Chinese translation, no explanation.
+    variables:
+      - paragraph
+
+  generate_summary:
+    description: "Generate article summary and key points"
+    template: |
+      Summarize the following article:
+      
+      Title: {title}
+      
+      Content:
+      {content}
+      
+      Provide:
+      1. **Summary (摘要)**: 3-5 sentence summary in Chinese
+      2. **Key Points (要点)**: 5-7 main takeaways as bullet points (in Chinese)
+      3. **Tags (标签)**: 3-5 relevant topic tags
+      
+      Format as JSON with fields:
+      - summary: string
+      - key_points: string[] 
+      - tags: string[]
+    variables:
+      - title
+      - content
+
+  generate_mindmap:
+    description: "Generate PlantUML mindmap script from article"
+    template: |
+      Generate a PlantUML mindmap script summarizing this article:
+      
+      Title: {title}
+      
+      Key Points:
+      {key_points}
+      
+      Content Structure (headings):
+      {headings}
+      
+      Requirements:
+      - Use PlantUML mindmap syntax (@startmindmap / @endmindmap)
+      - Root node: article title (in Chinese)
+      - Level 2: main sections/themes (3-5 branches)
+      - Level 3: key points under each theme (2-4 per branch)
+      - Keep text concise (max 20 characters per node)
+      - Use Chinese for all node text
+      - Use appropriate icons where relevant (*, +, -, etc.)
+      
+      Example format:
+      ```
+      @startmindmap
+      * 文章标题
+      ** 主题一
+      *** 要点1
+      *** 要点2
+      ** 主题二
+      *** 要点3
+      *** 要点4
+      @endmindmap
+      ```
+      
+      Generate ONLY the PlantUML code, no explanation or markdown code blocks.
+    variables:
+      - title
+      - key_points
+      - headings
+
+  detect_language:
+    description: "Detect the language of text"
+    template: |
+      What language is the following text written in?
+      
+      Text (first 500 characters):
+      {text}
+      
+      Respond with just the language code:
+      - "en" for English
+      - "zh" for Chinese
+      - "other" for other languages
+    variables:
+      - text
+
+  extract_headings:
+    description: "Extract headings structure from markdown"
+    template: |
+      Extract the heading structure from this markdown content:
+      
+      {content}
+      
+      Return a JSON array of headings with their levels:
+      [
+        {{"level": 1, "text": "Main Title"}},
+        {{"level": 2, "text": "Section 1"}},
+        {{"level": 3, "text": "Subsection 1.1"}}
+      ]
+      
+      Only include actual headings (# ## ### etc.), not regular text.
+    variables:
+      - content

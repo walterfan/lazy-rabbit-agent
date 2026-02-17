@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authService.signin(credentials)
       user.value = response.user
-      authService.saveAuth(response.access_token, response.user)
+      authService.saveAuth(response.access_token, response.refresh_token, response.user)
       return response
     } catch (err: any) {
       const message = err.response?.data?.detail || 'Login failed. Please try again.'
@@ -86,7 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = updatedUser
       // Update user in localStorage
       if (authService.getToken()) {
-        authService.saveAuth(authService.getToken()!, updatedUser)
+        authService.saveAuth(authService.getToken()!, authService.getRefreshToken() || '', updatedUser)
       }
       return updatedUser
     } catch (err: any) {

@@ -1,0 +1,50 @@
+version: "1.0"
+name: "compliance_strobe"
+description: "STROBE checklist for Observational Studies (cohort, case-control, cross-sectional)"
+
+prompts:
+  check_strobe:
+    template: |
+      Check this observational study manuscript against the STROBE checklist (22 items).
+
+      Manuscript:
+      {manuscript}
+
+      STROBE Items to check:
+      1a. Study design indicated in title or abstract
+      1b. Informative and balanced summary
+      2. Scientific background and rationale
+      3. State specific objectives, including pre-specified hypotheses
+      4. Study design: key elements presented early
+      5. Setting: locations and relevant dates
+      6a. Eligibility criteria, sources and methods of selection
+      6b. Matching criteria and number of controls per case (if applicable)
+      7. Clearly defined outcomes, exposures, predictors, confounders
+      8. Data sources and measurement for each variable
+      9. Describe efforts to address potential sources of bias
+      10. Explain how study size was arrived at
+      11. Explain how quantitative variables were handled
+      12a. Statistical methods used
+      12b. Methods for examining subgroups and interactions
+      12c. How missing data were addressed
+      12d. Sensitivity analyses (cohort)
+      12e. Matching strategy (case-control)
+      13a. Numbers of individuals at each study stage
+      13b. Reasons for non-participation at each stage
+      14a. Characteristics of study participants
+      14b. Indicate number of participants with missing data
+      15. Outcome data reported
+      16a. Unadjusted estimates and confounding-adjusted estimates
+      16b. Report category boundaries for continuous variables
+      16c. Relative risks translated to absolute risk if meaningful
+      17. Other analyses performed
+      18. Summarize key results
+      19. Discuss limitations
+      20. Cautious overall interpretation considering evidence
+      21. Discuss generalizability
+      22. Source of funding
+
+      For each item, respond:
+      {{"item_id": "1a", "status": "PASS|WARN|FAIL", "finding": "...", "suggestion": "..."}}
+    variables:
+      - manuscript

@@ -8,6 +8,14 @@ import Weather from '@/views/Weather.vue'
 import Recommendations from '@/views/Recommendations.vue'
 import ProfileEditor from '@/views/user/ProfileEditor.vue'
 import EmailPreferences from '@/views/EmailPreferences.vue'
+import Secretary from '@/views/Secretary.vue'
+import Learning from '@/views/Learning.vue'
+import MedicalPaper from '@/views/MedicalPaper.vue'
+import CalculatorTool from '@/views/tools/CalculatorTool.vue'
+import DateTimeTool from '@/views/tools/DateTimeTool.vue'
+import NotesTool from '@/views/tools/NotesTool.vue'
+import TasksTool from '@/views/tools/TasksTool.vue'
+import RemindersTool from '@/views/tools/RemindersTool.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -80,6 +88,55 @@ const routes: Array<RouteRecordRaw> = [
     path: '/recommendations',
     name: 'recommendations',
     component: Recommendations,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/secretary',
+    name: 'secretary',
+    component: Secretary,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/learning',
+    name: 'learning',
+    component: Learning,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/medical-paper',
+    name: 'medical-paper',
+    component: MedicalPaper,
+    meta: { requiresAuth: true },
+  },
+  // Tool pages
+  {
+    path: '/tools/calculator',
+    name: 'calculator-tool',
+    component: CalculatorTool,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tools/datetime',
+    name: 'datetime-tool',
+    component: DateTimeTool,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tools/notes',
+    name: 'notes-tool',
+    component: NotesTool,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tools/tasks',
+    name: 'tasks-tool',
+    component: TasksTool,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tools/reminders',
+    name: 'reminders-tool',
+    component: RemindersTool,
     meta: { requiresAuth: true },
   },
   {

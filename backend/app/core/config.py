@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Database
     DATABASE_URL: str = "sqlite:///./app.db"
@@ -88,6 +89,16 @@ class Settings(BaseSettings):
     MAIL_USERNAME: str = ""  # SMTP username (email address)
     MAIL_PASSWORD: str = ""  # SMTP password (app password for 163.com)
     MAIL_SENDER: str = ""  # From email address (sender)
+
+    # PlantUML Configuration (for article mindmap rendering)
+    PLANTUML_SERVER_URL: str = "http://www.plantuml.com/plantuml"  # PlantUML server URL
+    PLANTUML_JAR_PATH: str = ""  # Path to local plantuml.jar (optional, faster than server)
+    PLANTUML_OUTPUT_DIR: str = "static/mindmaps"  # Directory to save rendered PNGs
+
+    # Secretary Agent Configuration
+    LOG_LEVEL_SECRETARY: str = "INFO"  # Log level for secretary agent
+    TRACE_DETAILED: bool = False  # Log full prompts/responses (verbose, for debugging)
+    LOG_FORMAT: str = "text"  # Log format: "json" or "text"
 
     # Cronjob Configuration
     CRONJOB_SECRET_TOKEN: str = ""  # Secret token for cronjob authentication (optional, for production)

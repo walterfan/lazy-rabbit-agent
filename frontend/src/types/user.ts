@@ -56,6 +56,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   user: User
   access_token: string
+  refresh_token: string
   token_type: string
 }
 

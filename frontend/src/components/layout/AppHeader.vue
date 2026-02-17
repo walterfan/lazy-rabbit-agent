@@ -108,12 +108,16 @@ const isAdminRoute = () => {
 
 // Check if current route is an AI Agents route
 const isAiAgentsRoute = () => {
-  return route.path.startsWith('/recommendations')
+  return route.path.startsWith('/recommendations') ||
+         route.path.startsWith('/secretary') ||
+         route.path.startsWith('/learning') ||
+         route.path.startsWith('/medical-paper')
 }
 
 // Check if current route is an AI Tools route
 const isAiToolsRoute = () => {
-  return route.path.startsWith('/weather')
+  return route.path.startsWith('/weather') || 
+         route.path.startsWith('/tools/')
 }
 </script>
 
@@ -178,6 +182,27 @@ const isAiToolsRoute = () => {
               >
                 <div class="py-1">
                   <RouterLink
+                    to="/secretary"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    🤖 Personal Secretary
+                  </RouterLink>
+                  <RouterLink
+                    to="/learning"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    📚 Learning History
+                  </RouterLink>
+                  <RouterLink
+                    to="/medical-paper"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    📄 Medical Paper
+                  </RouterLink>
+                  <RouterLink
                     to="/recommendations"
                     @click="closeAiAgentsMenu"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -221,12 +246,52 @@ const isAiToolsRoute = () => {
                 @mouseleave="startAiToolsCloseTimeout"
               >
                 <div class="py-1">
+                  <!-- Utility Tools -->
+                  <div class="px-4 py-1 text-xs text-gray-500 font-semibold uppercase">Utility</div>
                   <RouterLink
                     to="/weather"
                     @click="closeAiToolsMenu"
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     🌤️ Weather
+                  </RouterLink>
+                  <RouterLink
+                    to="/tools/calculator"
+                    @click="closeAiToolsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    🧮 Calculator
+                  </RouterLink>
+                  <RouterLink
+                    to="/tools/datetime"
+                    @click="closeAiToolsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    🕐 Date & Time
+                  </RouterLink>
+                  
+                  <!-- Productivity Tools -->
+                  <div class="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold uppercase border-t">Productivity</div>
+                  <RouterLink
+                    to="/tools/notes"
+                    @click="closeAiToolsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    📝 Notes
+                  </RouterLink>
+                  <RouterLink
+                    to="/tools/tasks"
+                    @click="closeAiToolsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    ✅ Tasks
+                  </RouterLink>
+                  <RouterLink
+                    to="/tools/reminders"
+                    @click="closeAiToolsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    ⏰ Reminders
                   </RouterLink>
                 </div>
               </div>

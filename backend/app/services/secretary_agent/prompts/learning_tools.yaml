@@ -1,0 +1,131 @@
+# Learning Tool Prompts
+version: "1.0"
+name: "learning_tools"
+description: "Prompts for English and tech learning tools"
+
+prompts:
+  learn_word:
+    description: "Explain an English word for a Chinese learner"
+    template: |
+      Explain the English word "{word}" for a Chinese learner.
+      
+      Provide a comprehensive explanation including:
+      
+      1. **Chinese Explanation (中文解释)**: Explain the meaning in Chinese, including nuances
+      2. **Pronunciation**: Provide IPA notation (e.g., /ˌser.ənˈdɪp.ə.ti/)
+      3. **Part of Speech**: noun, verb, adjective, adverb, etc.
+      4. **Usage Examples**: 3 example sentences with Chinese translations
+      5. **Synonyms**: List 2-3 synonyms with brief explanations
+      6. **Common Collocations**: Common word combinations
+      7. **Usage Notes**: Any special usage rules or contexts
+      
+      Format your response as structured JSON matching the WordResponse schema.
+    variables:
+      - word
+
+  learn_sentence:
+    description: "Explain an English sentence for a Chinese learner"
+    template: |
+      Explain the following English sentence for a Chinese learner:
+      
+      Sentence: "{sentence}"
+      
+      Provide a detailed explanation including:
+      
+      1. **Chinese Translation (中文翻译)**: Natural, fluent Chinese translation
+      2. **Word-by-word Analysis**: Key vocabulary with Chinese meanings
+      3. **Grammar Notes**: Explain grammar patterns used (tense, structure, etc.)
+      4. **Context Examples**: 2 similar sentences with Chinese translations
+      5. **Usage Notes**: When and how to use this expression appropriately
+      6. **Common Mistakes**: Mistakes Chinese learners often make with this pattern
+      
+      Format your response as structured JSON matching the SentenceResponse schema.
+    variables:
+      - sentence
+
+  learn_topic:
+    description: "Generate a comprehensive learning plan for a tech topic"
+    template: |
+      Create a comprehensive learning plan for the tech topic: "{topic}"
+      
+      Provide a structured learning plan including:
+      
+      1. **Introduction (简介)**: What is {topic}? Explain in 2-3 sentences in both English and Chinese
+      
+      2. **Key Concepts (核心概念)**: 5-7 fundamental concepts with:
+         - Name (English and Chinese)
+         - Description (brief explanation)
+         - Importance (why it matters)
+      
+      3. **Learning Path (学习路径)**: Step-by-step progression with 5-8 steps:
+         - Step number
+         - Title (English and Chinese)
+         - Description (what to learn)
+         - Duration estimate (e.g., "1-2 days", "1 week")
+         - Expected outcomes (what you'll be able to do)
+      
+      4. **Recommended Resources (推荐资源)**: At least 5 resources including:
+         - Official documentation
+         - Tutorials (beginner-friendly)
+         - Courses (if available)
+         - Videos
+         - Books
+         Include URLs where possible.
+      
+      5. **Prerequisites (前置知识)**: What should the learner know first?
+      
+      6. **Time Estimate (时间估计)**: Total time to learn basics
+      
+      7. **Difficulty Level (难度)**: beginner, intermediate, or advanced
+      
+      Format your response as structured JSON matching the TopicResponse schema.
+    variables:
+      - topic
+
+  answer_question:
+    description: "Answer a general question with detailed explanation"
+    template: |
+      Answer the following question:
+      
+      Question: "{question}"
+      
+      Provide:
+      1. **Direct Answer**: A clear, concise answer
+      2. **Explanation**: Detailed explanation with reasoning
+      3. **Examples**: Concrete examples if applicable
+      4. **Related Topics**: Mention related concepts to explore
+      5. **Sources**: Suggest where to learn more (if appropriate)
+      
+      If the question is ambiguous, ask clarifying questions.
+      If you're unsure, be honest about the limitations of your knowledge.
+    variables:
+      - question
+
+  plan_idea:
+    description: "Transform an idea into an executable action plan"
+    template: |
+      Transform the following idea into an executable action plan:
+      
+      Idea: "{idea}"
+      
+      Create a detailed plan including:
+      
+      1. **Goal Definition (目标定义)**: Clear statement of what success looks like
+      
+      2. **Action Steps (行动步骤)**: Numbered list of concrete actions:
+         - Step number
+         - Action description
+         - Expected outcome
+         - Dependencies (what needs to be done first)
+      
+      3. **Resources Needed (所需资源)**: Tools, skills, or materials required
+      
+      4. **Potential Challenges (潜在挑战)**: Obstacles and how to overcome them
+      
+      5. **Success Metrics (成功指标)**: How to measure progress
+      
+      6. **First Action (第一步)**: The very first thing to do to get started
+      
+      Make the plan specific, measurable, and actionable.
+    variables:
+      - idea

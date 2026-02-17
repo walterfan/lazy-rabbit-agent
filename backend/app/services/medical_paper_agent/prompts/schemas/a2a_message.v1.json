@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "A2AMessageMedical",
+  "description": "Agent-to-Agent message contract for the Medical Paper Agent system (v1)",
+  "type": "object",
+  "required": ["protocol", "sender", "receiver", "intent", "status"],
+  "properties": {
+    "protocol": {
+      "type": "string",
+      "const": "a2a.medical.v1"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique message ID"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Task-level correlation ID for tracing"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sender": {
+      "type": "string",
+      "enum": ["supervisor", "literature_agent", "stats_agent", "writer_agent", "compliance_agent"]
+    },
+    "receiver": {
+      "type": "string",
+      "enum": ["supervisor", "literature_agent", "stats_agent", "writer_agent", "compliance_agent"]
+    },
+    "intent": {
+      "type": "string",
+      "description": "Action requested or performed"
+    },
+    "input": {
+      "type": "object",
+      "description": "Input payload for the action"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "ok", "error"]
+    },
+    "output": {
+      "type": "object",
+      "description": "Output payload from the action"
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": ["VALIDATION_ERROR", "TOOL_ERROR", "TIMEOUT", "RATE_LIMIT", "LLM_ERROR"]
+        },
+        "message": { "type": "string" },
+        "recoverable": { "type": "boolean" },
+        "retry_after": { "type": "integer" }
+      },
+      "required": ["code", "message"]
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "latency_ms": { "type": "integer" },
+        "tokens_in": { "type": "integer" },
+        "tokens_out": { "type": "integer" },
+        "tool_calls": { "type": "integer" }
+      }
+    }
+  }
+}

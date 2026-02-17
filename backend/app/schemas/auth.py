@@ -24,10 +24,25 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    """Login response schema with user info and token."""
+    """Login response schema with user info and tokens."""
 
     user: User
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class RefreshRequest(BaseModel):
+    """Token refresh request schema."""
+
+    refresh_token: str
+
+
+class RefreshResponse(BaseModel):
+    """Token refresh response schema."""
+
+    access_token: str
+    refresh_token: str
     token_type: str = "bearer"
 
 

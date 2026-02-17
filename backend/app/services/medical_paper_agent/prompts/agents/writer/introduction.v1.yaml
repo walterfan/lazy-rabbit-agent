@@ -1,0 +1,27 @@
+version: "1.0"
+name: "writer_introduction"
+description: "Prompts for writing the Introduction section"
+
+prompts:
+  write_introduction:
+    template: |
+      Write the Introduction section for a {paper_type} paper.
+
+      Research Question: {research_question}
+
+      Available References:
+      {references}
+
+      Structure:
+      1. Background: Importance of the disease/problem and current status
+      2. Literature Review: What is known, cite key references
+      3. Gap: What is NOT known or inadequately studied
+      4. Objective: State the study's purpose and hypothesis clearly
+
+      Word limit: {word_limit} words
+      Cite references as [Author, Year] or numbered format.
+    variables:
+      - paper_type
+      - research_question
+      - references
+      - word_limit

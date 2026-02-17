@@ -122,6 +122,18 @@ def health_check() -> dict[str, str]:
     return {"status": "healthy"}
 
 
+# Prometheus metrics endpoint
+@app.get("/api/metrics")
+def metrics():
+    """Prometheus metrics endpoint."""
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from fastapi.responses import Response
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
+
+
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

@@ -1,0 +1,29 @@
+version: "1.0"
+name: "writer_results"
+description: "Prompts for writing the Results section"
+
+prompts:
+  write_results:
+    template: |
+      Write the Results section for a {paper_type} paper.
+
+      Statistical Results:
+      {stats_report}
+
+      Study Design: {study_design}
+
+      Structure:
+      1. Participant flow: Enrollment, allocation, follow-up, analysis
+      2. Baseline characteristics: Demographics, clinical features
+      3. Primary outcome: Main results with CI and p-values
+      4. Secondary outcomes: Supporting results
+      5. Adverse events (if applicable)
+
+      Word limit: {word_limit} words
+      Report exact p-values. Use tables/figures for complex data.
+      Do NOT interpret results — save that for Discussion.
+    variables:
+      - paper_type
+      - stats_report
+      - study_design
+      - word_limit

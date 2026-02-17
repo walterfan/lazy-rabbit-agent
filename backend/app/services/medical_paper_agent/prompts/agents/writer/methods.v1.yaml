@@ -1,0 +1,27 @@
+version: "1.0"
+name: "writer_methods"
+description: "Prompts for writing the Methods section"
+
+prompts:
+  write_methods:
+    template: |
+      Write the Methods section for a {paper_type} paper.
+
+      Study Design: {study_design}
+      Statistical Analysis Plan: {stats_plan}
+
+      Structure:
+      1. Study Design: Type and setting
+      2. Participants: Inclusion/exclusion criteria, recruitment
+      3. Interventions: Description of interventions (if applicable)
+      4. Outcomes: Primary and secondary endpoints
+      5. Sample Size: Calculation and justification
+      6. Statistical Analysis: Methods used, software, significance level
+
+      Word limit: {word_limit} words
+      Use past tense. Be precise enough for replication.
+    variables:
+      - paper_type
+      - study_design
+      - stats_plan
+      - word_limit
