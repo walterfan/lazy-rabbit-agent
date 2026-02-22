@@ -1,0 +1,7 @@
+# Sphinx + MyST — Project Knowledge Pack (docs/source → docs/build)
+sphinx>=5.0
+myst-parser>=2.0
+sphinx-rtd-theme>=1.2
+# Mermaid and PlantUML diagram support
+sphinxcontrib-mermaid>=0.9
+sphinxcontrib-plantuml>=0.25

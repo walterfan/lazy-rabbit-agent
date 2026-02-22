@@ -246,7 +246,7 @@ onMounted(async () => {
           <p class="text-sm">我可以帮你学习英语、了解新技术、回答问题等</p>
           <div class="mt-4 flex flex-wrap gap-2 justify-center max-w-md">
             <button
-              v-for="suggestion in ['学习单词 hello', '今天天气怎么样', '什么是微服务', '计算 2+2*3']"
+              v-for="suggestion in ['学习单词 scamper', '今天天气怎么样', '什么是微服务', '计算 2+2*3']"
               :key="suggestion"
               type="button"
               class="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"

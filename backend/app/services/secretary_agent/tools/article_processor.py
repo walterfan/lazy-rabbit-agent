@@ -1,14 +1,22 @@
 """
 Article processing pipeline for the Personal Secretary agent.
 
-Pipeline: URL → Fetch → Markdown → Bilingual Translation → Summary → Mindmap → PNG
+Pipeline: URL → Fetch → Markdown (or PDF text) → Bilingual Translation → Summary → Mindmap → PNG
+
+Handles:
+- Plain HTML: trafilatura extraction.
+- PDF: pypdf text extraction (URL or Content-Type application/pdf).
+- JS-rendered / login-required: clear error messages and workaround suggestions.
 
 Each step is independently testable and traced for observability.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import re
+from dataclasses import dataclass
 from typing import Any, Optional
 
 import httpx
@@ -43,22 +51,54 @@ class ArticleSummary(BaseModel):
 # Step 1: Fetch Article
 # ============================================================================
 
-@trace_tool_call
-async def fetch_article(url: str) -> str:
-    """
-    Fetch the raw HTML content from a URL.
+# Content types we handle
+CONTENT_TYPE_HTML = "text/html"
+CONTENT_TYPE_PDF = "application/pdf"
 
-    Uses httpx with reasonable timeouts, a browser-like User-Agent, and
-    redirect following. Returns the HTML body as a string.
+# URL suffix hint for PDF when server doesn't send correct Content-Type
+PDF_URL_SUFFIXES = (".pdf", ".PDF")
+
+
+@dataclass(frozen=True)
+class FetchResult:
+    """Result of fetching a URL: content type and raw body."""
+
+    content_type: str  # "text/html" or "application/pdf"
+    body: str | bytes  # str for HTML, bytes for PDF
+    final_url: str
+
+
+def _is_pdf_url(url: str) -> bool:
+    """Return True if URL looks like a PDF (by path)."""
+    return url.rstrip("/").split("?")[0].endswith(PDF_URL_SUFFIXES)
+
+
+def _content_type_from_response(response: httpx.Response, url: str) -> str:
+    """Determine content type from response or URL."""
+    ct = response.headers.get("content-type", "").split(";")[0].strip().lower()
+    if "pdf" in ct or _is_pdf_url(url):
+        return CONTENT_TYPE_PDF
+    return CONTENT_TYPE_HTML
+
+
+@trace_tool_call
+async def fetch_article(url: str) -> FetchResult:
+    """
+    Fetch article content from a URL.
+
+    Detects HTML vs PDF by Content-Type or URL path. Uses a browser-like
+    User-Agent and redirect following. For 401/403, raises with a hint that
+    the page may require login.
 
     Args:
         url: The article URL to fetch
 
     Returns:
-        Raw HTML content
+        FetchResult with content_type ("text/html" or "application/pdf")
+        and body (str for HTML, bytes for PDF)
 
     Raises:
-        ValueError: If the URL is invalid or unreachable
+        ValueError: If the URL is invalid, unreachable, or requires login
     """
     headers = {
         "User-Agent": (
@@ -66,7 +106,10 @@ async def fetch_article(url: str) -> str:
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/120.0.0.0 Safari/537.36"
         ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,"
+            "application/pdf;q=0.8,*/*;q=0.7"
+        ),
         "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
     }
 
@@ -78,20 +121,52 @@ async def fetch_article(url: str) -> str:
         ) as client:
             response = await client.get(url, headers=headers)
             response.raise_for_status()
-            return response.text
+
+            content_type = _content_type_from_response(response, str(response.url))
+            final_url = str(response.url)
+
+            if content_type == CONTENT_TYPE_PDF:
+                return FetchResult(
+                    content_type=CONTENT_TYPE_PDF,
+                    body=response.content,
+                    final_url=final_url,
+                )
+            return FetchResult(
+                content_type=CONTENT_TYPE_HTML,
+                body=response.text,
+                final_url=final_url,
+            )
     except httpx.TimeoutException:
-        raise ValueError(f"Timeout fetching article: {url}")
-    except httpx.HTTPStatusError as exc:
         raise ValueError(
-            f"HTTP {exc.response.status_code} fetching article: {url}"
+            f"Timeout fetching article: {url}. "
+            "The site may be slow or blocking automated requests."
         )
+    except httpx.HTTPStatusError as exc:
+        code = exc.response.status_code
+        if code in (401, 403):
+            raise ValueError(
+                f"This URL may require login (HTTP {code}). "
+                "Try opening it in a browser, then copy the article text and paste it here, "
+                "or save the page as PDF and share the PDF link if supported."
+            )
+        raise ValueError(f"HTTP {code} fetching article: {url}")
     except httpx.RequestError as exc:
         raise ValueError(f"Error fetching article ({type(exc).__name__}): {url}")
 
 
 # ============================================================================
-# Step 2: Extract to Markdown
+# Step 2: Extract to Markdown (HTML) or Text (PDF)
 # ============================================================================
+
+# Message when HTML extraction yields no main content (JS-rendered, paywall, etc.)
+_EXTRACT_EMPTY_MSG = (
+    "Could not extract main content from this page. Common causes: "
+    "(1) The page is rendered by JavaScript — try saving as PDF or copying the article text and pasting it here; "
+    "(2) The page requires login or a subscription; "
+    "(3) The URL is not an article page (e.g. a hub or redirect). "
+    "For PDFs, use a direct .pdf link."
+)
+
 
 @trace_tool_call
 async def extract_to_markdown(html: str, url: Optional[str] = None) -> dict[str, Any]:
@@ -100,6 +175,7 @@ async def extract_to_markdown(html: str, url: Optional[str] = None) -> dict[str,
 
     Uses trafilatura to remove navigation, ads, footers, etc.
     Returns the markdown content along with metadata.
+    Fails with a clear message if the page is JS-rendered or login-required.
 
     Args:
         html: Raw HTML content
@@ -119,8 +195,8 @@ async def extract_to_markdown(html: str, url: Optional[str] = None) -> dict[str,
         favor_recall=True,
     )
 
-    if not content:
-        raise ValueError("Could not extract content from the provided HTML")
+    if not content or not content.strip():
+        raise ValueError(_EXTRACT_EMPTY_MSG)
 
     # Extract metadata
     metadata = trafilatura.extract_metadata(html, default_url=url)
@@ -138,6 +214,73 @@ async def extract_to_markdown(html: str, url: Optional[str] = None) -> dict[str,
 
     return {
         "title": title,
+        "author": author,
+        "date": date,
+        "content": content,
+        "word_count": word_count,
+    }
+
+
+@trace_tool_call
+async def extract_from_pdf(pdf_bytes: bytes, url: Optional[str] = None) -> dict[str, Any]:
+    """
+    Extract text from a PDF document.
+
+    Uses pypdf to get page text. Metadata (title, author, date) is read from
+    the PDF when available. Returns the same shape as extract_to_markdown
+    for use in the rest of the pipeline.
+
+    Args:
+        pdf_bytes: Raw PDF bytes
+        url: Original URL (for logging)
+
+    Returns:
+        Dictionary with keys: title, author, date, content, word_count
+    """
+    from pypdf import PdfReader
+    from io import BytesIO
+
+    try:
+        reader = PdfReader(BytesIO(pdf_bytes))
+    except Exception as e:
+        raise ValueError(f"Invalid or corrupted PDF: {e}") from e
+
+    text_parts: list[str] = []
+    for page in reader.pages:
+        t = page.extract_text()
+        if t:
+            text_parts.append(t)
+
+    content = "\n\n".join(text_parts).strip()
+    if not content:
+        raise ValueError(
+            "No text could be extracted from the PDF (it may be scanned images). "
+            "Use an OCR tool or paste the article text instead."
+        )
+
+    metadata = reader.metadata
+    title = (metadata and metadata.get("/Title")) or ""
+    if title and isinstance(title, bytes):
+        try:
+            title = title.decode("utf-8", errors="replace")
+        except Exception:
+            title = ""
+    author = None
+    date = None
+    if metadata:
+        author = metadata.get("/Author")
+        if author and isinstance(author, bytes):
+            try:
+                author = author.decode("utf-8", errors="replace")
+            except Exception:
+                author = None
+        # /CreationDate or /ModDate often in D:... format
+        date = metadata.get("/CreationDate") or metadata.get("/ModDate")
+
+    word_count = len(content.split())
+
+    return {
+        "title": title or "Untitled PDF",
         "author": author,
         "date": date,
         "content": content,
@@ -401,13 +544,25 @@ async def learn_article(url: str) -> str:
     # Create LLM call function
     llm_fn = _create_llm_call_fn()
 
-    # Step 1: Fetch
+    # Step 1: Fetch (detects HTML vs PDF)
     logger.info(f"[Article] Step 1: Fetching {url}")
-    html = await fetch_article(url=url)
+    fetch_result = await fetch_article(url=url)
 
-    # Step 2: Extract
-    logger.info("[Article] Step 2: Extracting to markdown")
-    extracted = await extract_to_markdown(html=html, url=url)
+    # Step 2: Extract (HTML → trafilatura, PDF → pypdf)
+    logger.info("[Article] Step 2: Extracting content")
+    if fetch_result.content_type == CONTENT_TYPE_PDF:
+        assert isinstance(fetch_result.body, bytes)
+        extracted = await extract_from_pdf(
+            pdf_bytes=fetch_result.body,
+            url=fetch_result.final_url,
+        )
+    else:
+        assert isinstance(fetch_result.body, str)
+        extracted = await extract_to_markdown(
+            html=fetch_result.body,
+            url=fetch_result.final_url,
+        )
+
     title = extracted["title"] or "Untitled Article"
     content = extracted["content"]
 

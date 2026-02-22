@@ -34,7 +34,10 @@ class ChatRequest(BaseModel):
 class ToolCallInfo(BaseModel):
     """Information about a tool call made during response."""
     tool: str = Field(description="Name of the tool")
-    args: dict[str, Any] = Field(description="Arguments passed to the tool")
+    args: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Arguments passed to the tool (empty when only name/result is stored)",
+    )
     result: Optional[str] = Field(default=None, description="Tool execution result")
 
 

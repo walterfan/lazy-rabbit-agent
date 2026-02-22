@@ -33,6 +33,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+logs/
 
 # Installer logs
 pip-log.txt
@@ -72,6 +73,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/build/
+docs/source/_plantuml_cache/
 
 # PyBuilder
 .pybuilder/

@@ -101,7 +101,7 @@ test.describe('Personal Secretary - Learning Flow', () => {
 
     // Ask to learn a word
     const chatInput = page.locator('[data-testid="chat-input"] textarea');
-    await chatInput.fill('请帮我学习单词 "algorithm"');
+    await chatInput.fill('请帮我学习单词 "scamper"');
     await page.click('[data-testid="send-button"]');
 
     // Wait for response with learning content

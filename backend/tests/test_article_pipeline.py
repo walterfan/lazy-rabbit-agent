@@ -24,12 +24,19 @@ class TestFetchArticle:
 
     @pytest.mark.asyncio
     async def test_fetch_valid_url(self):
-        """Should return HTML content for a valid URL."""
-        from app.services.secretary_agent.tools.article_processor import fetch_article
+        """Should return FetchResult with HTML content for a valid URL."""
+        from app.services.secretary_agent.tools.article_processor import (
+            CONTENT_TYPE_HTML,
+            FetchResult,
+            fetch_article,
+        )
 
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.text = "<html><body><h1>Hello</h1><p>World</p></body></html>"
+        mock_response.content = b"<html><body><h1>Hello</h1><p>World</p></body></html>"
+        mock_response.headers = {"content-type": "text/html; charset=utf-8"}
+        mock_response.url = "https://example.com/article"
         mock_response.raise_for_status = MagicMock()
 
         with patch("app.services.secretary_agent.tools.article_processor.httpx.AsyncClient") as MockClient:
@@ -40,8 +47,11 @@ class TestFetchArticle:
             MockClient.return_value = mock_client
 
             result = await fetch_article(url="https://example.com/article")
-            assert "<h1>Hello</h1>" in result
-            assert "<p>World</p>" in result
+            assert isinstance(result, FetchResult)
+            assert result.content_type == CONTENT_TYPE_HTML
+            assert isinstance(result.body, str)
+            assert "<h1>Hello</h1>" in result.body
+            assert "<p>World</p>" in result.body
 
     @pytest.mark.asyncio
     async def test_fetch_timeout(self):
@@ -85,6 +95,31 @@ class TestFetchArticle:
                 await fetch_article(url="https://example.com/not-found")
 
     @pytest.mark.asyncio
+    async def test_fetch_401_suggests_login(self):
+        """Should raise ValueError with login hint on 401."""
+        import httpx as httpx_lib
+        from app.services.secretary_agent.tools.article_processor import fetch_article
+
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.raise_for_status = MagicMock(
+            side_effect=httpx_lib.HTTPStatusError(
+                "Unauthorized", request=mock_request, response=mock_response
+            )
+        )
+
+        with patch("app.services.secretary_agent.tools.article_processor.httpx.AsyncClient") as MockClient:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
+
+            with pytest.raises(ValueError, match="login"):
+                await fetch_article(url="https://example.com/protected")
+
+    @pytest.mark.asyncio
     async def test_fetch_connection_error(self):
         """Should raise ValueError on connection errors."""
         import httpx as httpx_lib
@@ -101,6 +136,37 @@ class TestFetchArticle:
 
             with pytest.raises(ValueError, match="Error fetching"):
                 await fetch_article(url="https://unreachable.example.com")
+
+    @pytest.mark.asyncio
+    async def test_fetch_pdf_url_returns_bytes(self):
+        """Should return FetchResult with PDF bytes when Content-Type is application/pdf."""
+        from app.services.secretary_agent.tools.article_processor import (
+            CONTENT_TYPE_PDF,
+            FetchResult,
+            fetch_article,
+        )
+
+        pdf_bytes = b"%PDF-1.4 fake pdf content"
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = ""
+        mock_response.content = pdf_bytes
+        mock_response.headers = {"content-type": "application/pdf"}
+        mock_response.url = "https://example.com/doc.pdf"
+        mock_response.raise_for_status = MagicMock()
+
+        with patch("app.services.secretary_agent.tools.article_processor.httpx.AsyncClient") as MockClient:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
+
+            result = await fetch_article(url="https://example.com/doc.pdf")
+            assert isinstance(result, FetchResult)
+            assert result.content_type == CONTENT_TYPE_PDF
+            assert isinstance(result.body, bytes)
+            assert result.body == pdf_bytes
 
 
 # ============================================================================
@@ -176,6 +242,70 @@ class TestExtractToMarkdown:
         result = await extract_to_markdown(html=html, url="https://example.com")
         # title should be extracted (exact value depends on trafilatura heuristics)
         assert result["title"] is not None or result["content"]
+
+
+# ============================================================================
+# Test: extract_from_pdf
+# ============================================================================
+
+
+class TestExtractFromPdf:
+    """Tests for extract_from_pdf function."""
+
+    @pytest.mark.asyncio
+    async def test_extract_pdf_with_text(self):
+        """Should extract text from PDF and return title, content, word_count."""
+        from io import BytesIO
+        from app.services.secretary_agent.tools.article_processor import extract_from_pdf
+
+        try:
+            from pypdf import PdfReader, PdfWriter  # noqa: F401
+        except ImportError:
+            pytest.skip("pypdf not installed")
+
+        # Patch at the source so the function's local import gets the mock
+        patch_target = "pypdf.PdfReader"
+
+        buf = BytesIO()
+        writer = PdfWriter()
+        writer.add_blank_page(width=72, height=72)
+        writer.write(buf)
+        buf.seek(0)
+        pdf_bytes = buf.read()
+
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = "Hello PDF article world."
+        mock_reader = MagicMock(spec=PdfReader)
+        mock_reader.pages = [mock_page]
+        mock_reader.metadata = None
+
+        with patch(patch_target, return_value=mock_reader):
+            result = await extract_from_pdf(pdf_bytes=pdf_bytes, url="https://example.com/doc.pdf")
+
+        assert isinstance(result, dict)
+        assert result["content"] == "Hello PDF article world."
+        assert result["word_count"] == 4
+        assert "title" in result
+
+    @pytest.mark.asyncio
+    async def test_extract_pdf_empty_fails(self):
+        """Should raise ValueError for PDF with no extractable text."""
+        from app.services.secretary_agent.tools.article_processor import extract_from_pdf
+
+        try:
+            import pypdf  # noqa: F401
+        except ImportError:
+            pytest.skip("pypdf not installed")
+
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = None
+        mock_reader = MagicMock()
+        mock_reader.pages = [mock_page]
+        mock_reader.metadata = None
+
+        with patch("pypdf.PdfReader", return_value=mock_reader):
+            with pytest.raises(ValueError, match="No text could be extracted"):
+                await extract_from_pdf(pdf_bytes=b"%PDF-1.4 fake", url="https://example.com/blank.pdf")
 
 
 # ============================================================================

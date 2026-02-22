@@ -98,13 +98,16 @@ def create_learning_tools(
         coroutine=learn_article,
         name="learn_article",
         description=(
-            "Learn from a web article. Provide a URL and the tool will: "
-            "1) Fetch the article, 2) Convert to clean markdown, "
+            "Learn from a web article or PDF. Provide a URL and the tool will: "
+            "1) Fetch the page (HTML or PDF), "
+            "2) Extract main content to text, "
             "3) Translate to bilingual (English + Chinese), "
             "4) Summarize with key points, "
             "5) Generate a PlantUML mindmap, "
             "6) Render the mindmap as PNG. "
-            "Use when the user shares a URL and wants to learn from it."
+            "Works best with: direct article HTML URLs and direct .pdf links. "
+            "Limitations: JavaScript-rendered pages and login-required pages may fail; "
+            "suggest the user paste the article text or save as PDF and share that link."
         ),
         args_schema=LearnArticleInput,
     ))

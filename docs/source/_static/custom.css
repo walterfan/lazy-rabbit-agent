@@ -1,0 +1,7 @@
+/* Project Knowledge Pack — custom styles for Sphinx HTML output */
+.wy-body-max-width {
+    max-width: 1200px;
+}
+
+/* Optional: adjust heading or code appearance */
+/* .wy-nav-content { padding: 1.618em 3.236em; } */

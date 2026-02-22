@@ -32,6 +32,7 @@ langchain-core = "^0.3.0"
 langgraph = "^0.2.0"
 # Article processing
 trafilatura = "^1.6.0"
+pypdf = "^4.0.0"
 # Prometheus metrics
 prometheus-client = "^0.19.0"
 # Medical paper agent dependencies
