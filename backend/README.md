@@ -328,6 +328,8 @@ Configuration is managed through environment variables. See `.env.example` in pr
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token validity duration | `15` |
 | `DATABASE_URL` | Database connection string | `sqlite:///./app.db` |
 | `BACKEND_CORS_ORIGINS` | Allowed CORS origins (JSON array) | `["http://localhost:5173"]` |
+| `TRANSLATION_MAX_FILE_SIZE_BYTES` | Max file size for translation uploads (bytes) | `10485760` (10 MB) |
+| `TRANSLATION_MAX_SOURCE_LENGTH` | Max source text length sent to LLM (chars); over-length truncated | `12000` |
 
 ### Example Configuration
 

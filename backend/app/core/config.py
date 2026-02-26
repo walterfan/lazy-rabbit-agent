@@ -103,6 +103,10 @@ class Settings(BaseSettings):
     # Cronjob Configuration
     CRONJOB_SECRET_TOKEN: str = ""  # Secret token for cronjob authentication (optional, for production)
 
+    # Translation Agent Configuration
+    TRANSLATION_MAX_FILE_SIZE_BYTES: int = 10_485_760  # 10 MB; max upload file size
+    TRANSLATION_MAX_SOURCE_LENGTH: int = 12_000  # Max source text length (chars) sent to LLM; truncate if exceeded
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Any) -> list[str] | str:

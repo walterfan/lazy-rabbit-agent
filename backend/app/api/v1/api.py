@@ -12,6 +12,7 @@ from app.api.v1.endpoints import (
     recommendations,
     scheduled,
     secretary,
+    translation,
     users,
     weather,
 )
@@ -56,6 +57,9 @@ api_router.include_router(learning.router, prefix="/learning", tags=["learning"]
 
 # Include Medical Paper Writing Assistant routes
 api_router.include_router(medical_paper.router, prefix="/medical-paper", tags=["medical-paper"])
+
+# Include Translation routes
+api_router.include_router(translation.router, prefix="/translation", tags=["translation"])
 
 
 

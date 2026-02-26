@@ -11,6 +11,7 @@ import EmailPreferences from '@/views/EmailPreferences.vue'
 import Secretary from '@/views/Secretary.vue'
 import Learning from '@/views/Learning.vue'
 import MedicalPaper from '@/views/MedicalPaper.vue'
+import Translation from '@/views/Translation.vue'
 import CalculatorTool from '@/views/tools/CalculatorTool.vue'
 import DateTimeTool from '@/views/tools/DateTimeTool.vue'
 import NotesTool from '@/views/tools/NotesTool.vue'
@@ -106,6 +107,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/medical-paper',
     name: 'medical-paper',
     component: MedicalPaper,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/translation',
+    name: 'translation',
+    component: Translation,
     meta: { requiresAuth: true },
   },
   // Tool pages

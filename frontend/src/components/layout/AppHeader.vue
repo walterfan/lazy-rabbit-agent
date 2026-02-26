@@ -111,7 +111,8 @@ const isAiAgentsRoute = () => {
   return route.path.startsWith('/recommendations') ||
          route.path.startsWith('/secretary') ||
          route.path.startsWith('/learning') ||
-         route.path.startsWith('/medical-paper')
+         route.path.startsWith('/medical-paper') ||
+         route.path.startsWith('/translation')
 }
 
 // Check if current route is an AI Tools route
@@ -208,6 +209,13 @@ const isAiToolsRoute = () => {
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     👔 AI Dress Agent
+                  </RouterLink>
+                  <RouterLink
+                    to="/translation"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    🌐 Translation
                   </RouterLink>
                 </div>
               </div>

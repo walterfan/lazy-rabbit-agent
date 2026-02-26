@@ -54,6 +54,7 @@ class ArticleSummary(BaseModel):
 # Content types we handle
 CONTENT_TYPE_HTML = "text/html"
 CONTENT_TYPE_PDF = "application/pdf"
+CONTENT_TYPE_PLAIN = "text/plain"  # raw text or markdown (e.g. raw GitHub files)
 
 # URL suffix hint for PDF when server doesn't send correct Content-Type
 PDF_URL_SUFFIXES = (".pdf", ".PDF")
@@ -63,8 +64,8 @@ PDF_URL_SUFFIXES = (".pdf", ".PDF")
 class FetchResult:
     """Result of fetching a URL: content type and raw body."""
 
-    content_type: str  # "text/html" or "application/pdf"
-    body: str | bytes  # str for HTML, bytes for PDF
+    content_type: str  # "text/html", "application/pdf", or "text/plain" (raw text/markdown)
+    body: str | bytes  # str for HTML or plain text, bytes for PDF
     final_url: str
 
 
@@ -78,6 +79,8 @@ def _content_type_from_response(response: httpx.Response, url: str) -> str:
     ct = response.headers.get("content-type", "").split(";")[0].strip().lower()
     if "pdf" in ct or _is_pdf_url(url):
         return CONTENT_TYPE_PDF
+    if ct in ("text/plain", "text/markdown") or "text/markdown" in ct:
+        return CONTENT_TYPE_PLAIN
     return CONTENT_TYPE_HTML
 
 
@@ -94,8 +97,8 @@ async def fetch_article(url: str) -> FetchResult:
         url: The article URL to fetch
 
     Returns:
-        FetchResult with content_type ("text/html" or "application/pdf")
-        and body (str for HTML, bytes for PDF)
+        FetchResult with content_type ("text/html", "application/pdf", or "text/plain")
+        and body (str for HTML/plain, bytes for PDF)
 
     Raises:
         ValueError: If the URL is invalid, unreachable, or requires login
@@ -129,6 +132,12 @@ async def fetch_article(url: str) -> FetchResult:
                 return FetchResult(
                     content_type=CONTENT_TYPE_PDF,
                     body=response.content,
+                    final_url=final_url,
+                )
+            if content_type == CONTENT_TYPE_PLAIN:
+                return FetchResult(
+                    content_type=CONTENT_TYPE_PLAIN,
+                    body=response.text,
                     final_url=final_url,
                 )
             return FetchResult(
@@ -548,7 +557,7 @@ async def learn_article(url: str) -> str:
     logger.info(f"[Article] Step 1: Fetching {url}")
     fetch_result = await fetch_article(url=url)
 
-    # Step 2: Extract (HTML → trafilatura, PDF → pypdf)
+    # Step 2: Extract (HTML → trafilatura, PDF → pypdf, plain text/markdown → use as-is)
     logger.info("[Article] Step 2: Extracting content")
     if fetch_result.content_type == CONTENT_TYPE_PDF:
         assert isinstance(fetch_result.body, bytes)
@@ -556,6 +565,18 @@ async def learn_article(url: str) -> str:
             pdf_bytes=fetch_result.body,
             url=fetch_result.final_url,
         )
+    elif fetch_result.content_type == CONTENT_TYPE_PLAIN:
+        assert isinstance(fetch_result.body, str)
+        content = fetch_result.body.strip()
+        if not content:
+            raise ValueError("URL returned empty text.")
+        extracted = {
+            "title": "Untitled",
+            "author": None,
+            "date": None,
+            "content": content,
+            "word_count": len(content.split()),
+        }
     else:
         assert isinstance(fetch_result.body, str)
         extracted = await extract_to_markdown(
