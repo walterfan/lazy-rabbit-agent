@@ -5,7 +5,7 @@ import ButtonComponent from '@/components/forms/ButtonComponent.vue'
 
 const authStore = useAuthStore()
 
-// Define available agents
+// Define available AI agents (implemented)
 const agents = [
   {
     id: 'secretary',
@@ -16,12 +16,36 @@ const agents = [
     color: 'from-blue-500 to-indigo-600',
   },
   {
+    id: 'learning',
+    name: 'Learning History',
+    icon: '📚',
+    description: 'Review and manage your learning records: words, sentences, topics, articles, and ideas',
+    route: '/learning',
+    color: 'from-amber-500 to-orange-600',
+  },
+  {
+    id: 'medical-paper',
+    name: 'Medical Paper',
+    icon: '📄',
+    description: 'AI-assisted medical paper writing with compliance, literature, stats, and writing support',
+    route: '/medical-paper',
+    color: 'from-emerald-500 to-teal-600',
+  },
+  {
     id: 'dress',
     name: 'AI Dress Agent',
     icon: '👔',
     description: 'Get personalized outfit suggestions based on weather and your style preferences',
     route: '/recommendations',
     color: 'from-pink-500 to-rose-600',
+  },
+  {
+    id: 'translation',
+    name: 'Translation',
+    icon: '🌐',
+    description: 'Translate URLs, pasted text, or uploaded files (PDF/text/md) to Chinese with explanation and summary',
+    route: '/translation',
+    color: 'from-violet-500 to-purple-600',
   },
 ]
 

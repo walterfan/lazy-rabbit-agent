@@ -94,7 +94,7 @@ export async function translateByFile(
 }
 
 export interface StreamEvent {
-  event: 'token' | 'explanation' | 'summary' | 'done' | 'error';
+  event: 'token' | 'explanation_token' | 'explanation' | 'summary_token' | 'summary' | 'done' | 'error';
   data?: string;
   source_truncated?: boolean;
 }
@@ -186,9 +186,11 @@ async function consumeSSE(
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-      for (const line of lines) {
+      // SSE events are separated by double newline; split so payloads with \n in JSON are safe
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? '';
+      for (const part of parts) {
+        const line = part.trim();
         if (line.startsWith('data: ')) {
           try {
             const ev = JSON.parse(line.slice(6)) as StreamEvent;
@@ -199,9 +201,9 @@ async function consumeSSE(
         }
       }
     }
-    if (buffer.startsWith('data: ')) {
+    if (buffer.trim().startsWith('data: ')) {
       try {
-        const ev = JSON.parse(buffer.slice(6)) as StreamEvent;
+        const ev = JSON.parse(buffer.trim().slice(6)) as StreamEvent;
         onEvent(ev);
       } catch {
         // skip

@@ -282,10 +282,10 @@ class TranslationService:
         ):
             if ev.get("event") == "token":
                 translated_markdown += ev.get("data", "")
-            elif ev.get("event") == "explanation":
-                explanation = ev.get("data", "")
-            elif ev.get("event") == "summary":
-                summary = ev.get("data", "")
+            elif ev.get("event") == "explanation_token":
+                explanation += ev.get("data", "")
+            elif ev.get("event") == "summary_token":
+                summary += ev.get("data", "")
         return TranslationResult(
             translated_markdown=translated_markdown.strip(),
             explanation=explanation,
@@ -300,8 +300,8 @@ class TranslationService:
         source_truncated: bool = False,
     ) -> AsyncIterator[dict[str, Any]]:
         """
-        Stream translation tokens first, then emit explanation and summary events, then done.
-        Event dicts: {"event": "token", "data": "..."} | {"event": "explanation", "data": "..."} | {"event": "summary", "data": "..."} | {"event": "done"}.
+        Stream translation, then explanation, then summary token-by-token; then done.
+        Event dicts: {"event": "token", "data": "..."} | {"event": "explanation_token", "data": "..."} | {"event": "summary_token", "data": "..."} | {"event": "done"}.
         """
         prompt = _translation_prompt(source_text, output_mode)
         full_translation: list[str] = []
@@ -315,23 +315,25 @@ class TranslationService:
 
         translated_markdown = "".join(full_translation).strip()
 
-        # Explanation (stream and collect to avoid requiring JSON from LLM)
+        # Explanation: stream tokens, then send full text so client always gets content
         expl_prompt = _explanation_prompt(translated_markdown)
         expl_chunks: list[str] = []
         async for t in self._provider.generate_completion_stream(
             expl_prompt, temperature=0.3, max_tokens=1024
         ):
             expl_chunks.append(t)
+            yield {"event": "explanation_token", "data": t}
         explanation = "".join(expl_chunks).strip()
         yield {"event": "explanation", "data": explanation}
 
-        # Summary (stream and collect)
+        # Summary: stream tokens, then send full text
         sum_prompt = _summary_prompt(translated_markdown)
         sum_chunks: list[str] = []
         async for t in self._provider.generate_completion_stream(
             sum_prompt, temperature=0.3, max_tokens=512
         ):
             sum_chunks.append(t)
+            yield {"event": "summary_token", "data": t}
         summary = "".join(sum_chunks).strip()
         yield {"event": "summary", "data": summary}
 

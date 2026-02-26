@@ -54,14 +54,15 @@ function clearResult() {
 
 function buildFullMarkdown(): string {
   const parts: string[] = [];
+  const hr = '\n\n---\n\n';
   if (translatedMarkdown.value) {
     parts.push('# 翻译\n\n', translatedMarkdown.value);
   }
   if (explanation.value) {
-    parts.push('\n\n# 解释\n\n', explanation.value);
+    parts.push(hr, '# 解释\n\n', explanation.value);
   }
   if (summary.value) {
-    parts.push('\n\n# 总结\n\n', summary.value);
+    parts.push(hr, '# 总结\n\n', summary.value);
   }
   return parts.join('');
 }
@@ -116,8 +117,12 @@ async function runStreaming() {
     const onEvent = (ev: StreamEvent) => {
       if (ev.event === 'token' && ev.data !== undefined) {
         translatedMarkdown.value += ev.data;
+      } else if (ev.event === 'explanation_token' && ev.data !== undefined) {
+        explanation.value += ev.data;
       } else if (ev.event === 'explanation' && ev.data !== undefined) {
         explanation.value = ev.data;
+      } else if (ev.event === 'summary_token' && ev.data !== undefined) {
+        summary.value += ev.data;
       } else if (ev.event === 'summary' && ev.data !== undefined) {
         summary.value = ev.data;
       } else if (ev.event === 'done') {
