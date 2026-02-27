@@ -52,10 +52,20 @@ erDiagram
 
 ## External API
 
-- **REST**: All under `/api/v1/`. Auth: `/api/v1/auth` (signup, signin). Secretary: `/api/v1/secretary` (sessions, messages, stream, tools). Learning: `/api/v1/learning`. Translation: `/api/v1/translation` (POST with URL or file; POST `/api/v1/translation/stream` for SSE). OpenAPI: `/docs`, `/redoc`.
+- **REST**: All under `/api/v1/`. Auth: `/api/v1/auth` (signup, signin). Secretary: `/api/v1/secretary` (sessions, messages, stream, tools). Learning: `/api/v1/learning`. Translation: `/api/v1/translation` (POST with URL/text/file; POST `/api/v1/translation/stream` for SSE). Philosophy Master: `/api/v1/philosophy` (POST `/chat` and `/chat/stream` for SSE, supports style presets). OpenAPI: `/docs`, `/redoc`.
 - **Auth**: Bearer JWT in `Authorization` header.
 
 ## Configuration
 
 - Backend: `.env` (see `backend/` or project root). Key: `DATABASE_URL`, `SECRET_KEY`, `LLM_*`, `WEATHER_*`, `MAIL_*`. Translation: `TRANSLATION_MAX_FILE_SIZE_BYTES` (default 10 MB), `TRANSLATION_MAX_SOURCE_LENGTH` (default 12_000).
 - Frontend: `VITE_API_BASE_URL`, `VITE_WS_BASE_URL`.
+
+## Philosophy Master presets
+
+Philosophy Master endpoints accept an optional `preset` object:
+
+- `school`: `eastern|western|zen|confucian|stoic|existential|kant|nietzsche|schopenhauer|idealism|materialism|mixed`
+- `tone`: `gentle|direct|rigorous|zen`
+- `depth`: `shallow|medium|deep`
+- `mode`: `advice|story|compare|daily_practice`
+- `multi_perspective`: boolean

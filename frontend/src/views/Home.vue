@@ -47,6 +47,14 @@ const agents = [
     route: '/translation',
     color: 'from-violet-500 to-purple-600',
   },
+  {
+    id: 'philosophy',
+    name: 'Philosophy Master',
+    icon: '🧠',
+    description: 'Philosophical analysis and practical guidance with selectable schools, tone, depth, and modes',
+    route: '/philosophy',
+    color: 'from-cyan-500 to-sky-600',
+  },
 ]
 
 // Define available tools

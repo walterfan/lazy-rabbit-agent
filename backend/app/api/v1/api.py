@@ -6,6 +6,7 @@ from app.api.v1.endpoints import (
     auth,
     cities,
     emails,
+    philosophy,
     learning,
     medical_paper,
     rbac,
@@ -60,6 +61,9 @@ api_router.include_router(medical_paper.router, prefix="/medical-paper", tags=["
 
 # Include Translation routes
 api_router.include_router(translation.router, prefix="/translation", tags=["translation"])
+
+# Include Philosophy Master routes
+api_router.include_router(philosophy.router, prefix="/philosophy", tags=["philosophy-master"])
 
 
 

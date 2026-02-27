@@ -12,6 +12,7 @@ import Secretary from '@/views/Secretary.vue'
 import Learning from '@/views/Learning.vue'
 import MedicalPaper from '@/views/MedicalPaper.vue'
 import Translation from '@/views/Translation.vue'
+import PhilosophyMaster from '@/views/PhilosophyMaster.vue'
 import CalculatorTool from '@/views/tools/CalculatorTool.vue'
 import DateTimeTool from '@/views/tools/DateTimeTool.vue'
 import NotesTool from '@/views/tools/NotesTool.vue'
@@ -113,6 +114,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/translation',
     name: 'translation',
     component: Translation,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/philosophy',
+    name: 'philosophy-master',
+    component: PhilosophyMaster,
     meta: { requiresAuth: true },
   },
   // Tool pages
