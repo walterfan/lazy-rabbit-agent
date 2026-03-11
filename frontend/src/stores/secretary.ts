@@ -1,10 +1,17 @@
 /**
  * Secretary chat Pinia store
+ *
+ * Supports two transport modes:
+ *   1. SSE (Server-Sent Events) — default, via HTTP POST /chat/stream
+ *   2. WebSocket — real-time bidirectional, via ws:///api/v1/ws/chat
+ *
+ * Toggle with `setTransport('ws' | 'sse')`.
  */
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import secretaryService from '@/services/secretary.service';
+import { WsChatService, type WsMessage } from '@/services/wsChat.service';
 import type {
   ChatSession,
   ChatSessionDetail,
@@ -12,6 +19,8 @@ import type {
   ToolInfo,
   StreamEvent,
 } from '@/types/secretary';
+
+export type TransportMode = 'sse' | 'ws'
 
 export const useSecretaryStore = defineStore('secretary', () => {
   // ============================================================================
@@ -24,6 +33,14 @@ export const useSecretaryStore = defineStore('secretary', () => {
   
   const loading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Transport mode
+  const transport = ref<TransportMode>('sse');
+  const wsConnected = ref(false);
+  const wsOnlineCount = ref(0);
+  
+  // WebSocket service instance
+  let wsService: WsChatService | null = null;
   
   // Streaming state
   const isStreaming = ref(false);
@@ -302,6 +319,234 @@ export const useSecretaryStore = defineStore('secretary', () => {
     isStreaming.value = false;
   }
 
+  // ============================================================================
+  // WebSocket Transport
+  // ============================================================================
+
+  /**
+   * Switch transport mode between SSE and WebSocket.
+   */
+  function setTransport(mode: TransportMode) {
+    if (transport.value === mode) return;
+    
+    // Disconnect old WS if switching away
+    if (transport.value === 'ws' && wsService) {
+      wsService.disconnect();
+      wsService.offAll();
+      wsService = null;
+      wsConnected.value = false;
+    }
+    
+    transport.value = mode;
+    
+    // Connect WS if switching to it
+    if (mode === 'ws') {
+      connectWebSocket();
+    }
+  }
+
+  /**
+   * Connect to WebSocket chat server.
+   */
+  function connectWebSocket() {
+    if (wsService?.isConnected) return;
+    
+    wsService = new WsChatService({
+      autoReconnect: true,
+      maxReconnectAttempts: 10,
+      heartbeatInterval: 30000,
+    });
+    
+    // --- Wire up event handlers ---
+    
+    wsService.on('connected', (data: WsMessage) => {
+      wsConnected.value = true;
+      wsOnlineCount.value = data.online_count || 0;
+      console.log('[WS Store] Connected, online:', data.online_count);
+    });
+    
+    wsService.on('session_created', (data: WsMessage) => {
+      if (currentSession.value) {
+        currentSession.value.id = data.session_id;
+        currentSession.value.title = data.title;
+      }
+    });
+    
+    wsService.on('token', (data: WsMessage) => {
+      isStreaming.value = true;
+      streamingText.value += data.content || '';
+    });
+    
+    wsService.on('tool_call', (data: WsMessage) => {
+      streamingToolCalls.value.push({
+        tool: data.tool,
+        args: data.args || {},
+      });
+    });
+    
+    wsService.on('tool_result', (data: WsMessage) => {
+      const tc = streamingToolCalls.value.find(t => t.tool === data.tool);
+      if (tc) tc.result = data.result;
+    });
+    
+    wsService.on('done', (data: WsMessage) => {
+      // Finalize: add assistant message to current session
+      if (currentSession.value) {
+        currentSession.value.messages.push({
+          id: data.message_id || `ws-${Date.now()}`,
+          role: 'assistant',
+          content: streamingText.value,
+          tool_calls: streamingToolCalls.value.length > 0
+            ? streamingToolCalls.value
+            : undefined,
+          created_at: new Date().toISOString(),
+        });
+        
+        if (data.session_id) {
+          currentSession.value.id = data.session_id;
+        }
+      }
+      
+      isStreaming.value = false;
+      // Refresh session list
+      if (wsService) wsService.sendListSessions();
+    });
+    
+    wsService.on('sessions', (data: WsMessage) => {
+      sessions.value = (data.sessions || []).map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        message_count: s.message_count,
+        created_at: s.created_at,
+        updated_at: s.updated_at,
+      }));
+    });
+    
+    wsService.on('session_detail', (data: WsMessage) => {
+      const s = data.session;
+      if (s) {
+        currentSession.value = {
+          id: s.id,
+          title: s.title,
+          messages: s.messages || [],
+          created_at: s.created_at,
+          updated_at: s.updated_at,
+        };
+      }
+      loading.value = false;
+    });
+    
+    wsService.on('session_deleted', (data: WsMessage) => {
+      sessions.value = sessions.value.filter(s => s.id !== data.session_id);
+      if (currentSession.value?.id === data.session_id) {
+        currentSession.value = null;
+      }
+    });
+    
+    wsService.on('error', (data: WsMessage) => {
+      if (data.content?.includes('Disconnected')) {
+        wsConnected.value = false;
+      } else {
+        error.value = data.content || 'WebSocket error';
+        isStreaming.value = false;
+      }
+    });
+    
+    wsService.connect();
+  }
+
+  /**
+   * Disconnect WebSocket.
+   */
+  function disconnectWebSocket() {
+    if (wsService) {
+      wsService.disconnect();
+      wsService.offAll();
+      wsService = null;
+    }
+    wsConnected.value = false;
+  }
+
+  /**
+   * Send a chat message via WebSocket.
+   */
+  function sendMessageWs(message: string, sessionId?: string | null) {
+    if (!wsService?.isConnected) {
+      error.value = 'WebSocket not connected';
+      return;
+    }
+    
+    // Reset streaming state
+    streamingText.value = '';
+    streamingToolCalls.value = [];
+    isStreaming.value = true;
+    error.value = null;
+    
+    // Add user message to current session immediately
+    if (currentSession.value) {
+      currentSession.value.messages.push({
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: message,
+        created_at: new Date().toISOString(),
+      });
+    }
+    
+    wsService.sendChat(message, sessionId || undefined);
+  }
+
+  /**
+   * Unified send — dispatches to SSE or WS based on current transport.
+   */
+  async function sendMessageAuto(
+    message: string,
+    sessionId?: string | null,
+    onToken?: (token: string) => void,
+    onToolCall?: (tool: string, args: Record<string, any>) => void,
+    onToolResult?: (tool: string, result: string) => void,
+    onComplete?: (sessionId: string, messageId: string) => void,
+  ) {
+    if (transport.value === 'ws') {
+      sendMessageWs(message, sessionId);
+    } else {
+      await sendMessageStream(message, sessionId, onToken, onToolCall, onToolResult, onComplete);
+    }
+  }
+
+  /**
+   * Unified list sessions.
+   */
+  async function listSessionsAuto(page = 1, pageSize = 20): Promise<void> {
+    if (transport.value === 'ws' && wsService?.isConnected) {
+      wsService.sendListSessions(page, pageSize);
+    } else {
+      await listSessions(page, pageSize);
+    }
+  }
+
+  /**
+   * Unified get session.
+   */
+  async function getSessionAuto(sessionId: string): Promise<void> {
+    if (transport.value === 'ws' && wsService?.isConnected) {
+      loading.value = true;
+      wsService.sendGetSession(sessionId);
+    } else {
+      await getSession(sessionId);
+    }
+  }
+
+  /**
+   * Unified delete session.
+   */
+  async function deleteSessionAuto(sessionId: string): Promise<void> {
+    if (transport.value === 'ws' && wsService?.isConnected) {
+      wsService.sendDeleteSession(sessionId);
+    } else {
+      await deleteSession(sessionId);
+    }
+  }
+
   return {
     // State
     sessions,
@@ -312,6 +557,9 @@ export const useSecretaryStore = defineStore('secretary', () => {
     isStreaming,
     streamingText,
     streamingToolCalls,
+    transport,
+    wsConnected,
+    wsOnlineCount,
     
     // Computed
     hasSessions,
@@ -319,7 +567,7 @@ export const useSecretaryStore = defineStore('secretary', () => {
     learningTools,
     utilityTools,
     
-    // Actions
+    // Actions — SSE (original)
     sendMessage,
     sendMessageStream,
     listSessions,
@@ -329,5 +577,17 @@ export const useSecretaryStore = defineStore('secretary', () => {
     loadTools,
     clearError,
     stopStreaming,
+    
+    // Actions — WebSocket
+    setTransport,
+    connectWebSocket,
+    disconnectWebSocket,
+    sendMessageWs,
+    
+    // Actions — Unified (auto-dispatch based on transport)
+    sendMessageAuto,
+    listSessionsAuto,
+    getSessionAuto,
+    deleteSessionAuto,
   };
 });

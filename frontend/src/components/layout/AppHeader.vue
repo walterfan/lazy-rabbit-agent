@@ -103,7 +103,7 @@ const startAiToolsCloseTimeout = () => {
 
 // Check if current route is an admin route
 const isAdminRoute = () => {
-  return route.path.startsWith('/admin') || route.path.startsWith('/rbac')
+  return route.path.startsWith('/admin') || route.path.startsWith('/rbac') || route.path.startsWith('/admin/scheduler')
 }
 
 // Check if current route is an AI Agents route
@@ -113,7 +113,10 @@ const isAiAgentsRoute = () => {
          route.path.startsWith('/learning') ||
          route.path.startsWith('/medical-paper') ||
          route.path.startsWith('/translation') ||
-         route.path.startsWith('/philosophy')
+         route.path.startsWith('/philosophy') ||
+         route.path.startsWith('/coach') ||
+         route.path.startsWith('/knowledge') ||
+         route.path.startsWith('/learning-plan')
 }
 
 // Check if current route is an AI Tools route
@@ -224,6 +227,28 @@ const isAiToolsRoute = () => {
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     🧠 Philosophy Master
+                  </RouterLink>
+                  <div class="border-t my-1"></div>
+                  <RouterLink
+                    to="/coach"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    🎓 AI Coach
+                  </RouterLink>
+                  <RouterLink
+                    to="/knowledge"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    📚 Knowledge Base
+                  </RouterLink>
+                  <RouterLink
+                    to="/learning-plan"
+                    @click="closeAiAgentsMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    📅 Learning Plan
                   </RouterLink>
                 </div>
               </div>
@@ -364,6 +389,14 @@ const isAiToolsRoute = () => {
                     📧 Email Settings
                   </RouterLink>
                   <RouterLink
+                    v-if="authStore.isAdmin"
+                    to="/admin/scheduler"
+                    @click="closeAdminMenu"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    ⏰ Job Scheduler
+                  </RouterLink>
+                  <RouterLink
                     v-if="authStore.isSuperAdmin"
                     to="/rbac/roles"
                     @click="closeAdminMenu"
@@ -383,6 +416,12 @@ const isAiToolsRoute = () => {
               </div>
             </div>
             
+            <RouterLink
+              to="/admin/llm-settings"
+              class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              LLM Settings
+            </RouterLink>
             <RouterLink
               to="/profile"
               class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"

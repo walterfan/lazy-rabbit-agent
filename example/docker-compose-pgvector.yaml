@@ -1,0 +1,27 @@
+services:
+  pgvector:
+    image: ankane/pgvector
+    container_name: pgvector-rag-demo
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rag_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: pgweb-rag-demo
+    ports:
+      - "8081:8081"
+    environment:
+      - PGWEB_DATABASE_URL=postgres://postgres:postgres@pgvector:5432/rag_db?sslmode=disable
+    depends_on:
+      - pgvector
+    restart: unless-stopped
+
+volumes:
+  pgvector-data:

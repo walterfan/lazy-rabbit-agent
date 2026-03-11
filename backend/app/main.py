@@ -188,11 +188,56 @@ async def startup_event() -> None:
     logger.info(f"🔧 Environment: {settings.ENVIRONMENT}")
     logger.info(f"📊 Logging level: {logging.getLevelName(logger.level)}")
 
+    # Start APScheduler for periodic agent jobs
+    if settings.SCHEDULER_ENABLED:
+        try:
+            from app.services.scheduler import scheduler_service
+
+            scheduler_service.start(timezone=settings.SCHEDULER_TIMEZONE)
+            logger.info("⏰ APScheduler started successfully")
+        except Exception as e:
+            logger.warning(f"⚠️ APScheduler failed to start: {e}")
+    else:
+        logger.info("⏰ APScheduler disabled (SCHEDULER_ENABLED=false)")
+
+    # Initialize RAG engine (pgvector if PostgreSQL, disabled if SQLite)
+    try:
+        from app.services.rag.engine import init_rag_engine
+
+        rag = init_rag_engine(
+            vector_store_type=settings.VECTOR_STORE,
+            database_url=settings.DATABASE_URL,
+            persist_dir=settings.CHROMA_PERSIST_DIR,
+            chunk_size=settings.RAG_CHUNK_SIZE,
+            chunk_overlap=settings.RAG_CHUNK_OVERLAP,
+            similarity_top_k=settings.RAG_SIMILARITY_TOP_K,
+            embedding_model=settings.EMBEDDING_MODEL or settings.LLM_EMBEDDING_MODEL,
+            llm_api_key=settings.LLM_API_KEY,
+            llm_base_url=settings.LLM_BASE_URL,
+            embedding_api_key=settings.EMBEDDING_API_KEY,
+            embedding_base_url=settings.EMBEDDING_BASE_URL,
+        )
+        if rag.is_available:
+            logger.info(f"🧠 RAG engine initialized (backend={rag.backend_name})")
+        else:
+            logger.warning(f"⚠️ RAG not available: {rag.init_error}")
+    except Exception as e:
+        logger.warning(f"⚠️ RAG engine initialization failed: {e}")
+
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     """Run on application shutdown."""
+    # Shut down APScheduler gracefully
+    if settings.SCHEDULER_ENABLED:
+        try:
+            from app.services.scheduler import scheduler_service
+
+            scheduler_service.shutdown()
+        except Exception as e:
+            logger.warning(f"⚠️ APScheduler shutdown error: {e}")
+
     logger.info(f"👋 {settings.PROJECT_NAME} shutting down...")
 
 

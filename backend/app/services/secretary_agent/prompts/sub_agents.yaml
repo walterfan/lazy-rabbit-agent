@@ -15,10 +15,13 @@ prompts:
       1. **learning_agent** — English words/sentences, tech topics, web articles, Q&A, ideas, learning records
       2. **productivity_agent** — Notes, tasks, reminders
       3. **utility_agent** — Weather, math calculations, date/time, casual chat, greetings, general conversation
+      4. **coach_agent** — Learning coaching, knowledge base Q&A, learning goals, study sessions, progress tracking, quizzes
 
       Routing rules:
       - Choose exactly ONE agent that best matches the user's intent
-      - For casual chat, greetings, or topics not clearly matching learning or productivity, choose utility_agent
+      - For coaching, knowledge base queries, learning goals/plans, study progress, or quiz requests, choose coach_agent
+      - Keywords for coach_agent: 教练, coach, 知识库, knowledge, 学习目标, goal, 学习进度, progress, quiz, 测验, 辅导, tutor, 学习计划
+      - For casual chat, greetings, or topics not clearly matching learning, productivity, or coaching, choose utility_agent
       - If the request spans multiple domains, route to the first relevant agent; after it responds you will route to the next one
       - If a sub-agent has already responded and the user's full request is handled, choose FINISH
 

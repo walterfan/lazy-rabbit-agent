@@ -103,6 +103,23 @@ class Settings(BaseSettings):
     # Cronjob Configuration
     CRONJOB_SECRET_TOKEN: str = ""  # Secret token for cronjob authentication (optional, for production)
 
+    # Scheduler Configuration
+    SCHEDULER_ENABLED: bool = True  # Enable/disable the built-in APScheduler
+    SCHEDULER_TIMEZONE: str = "Asia/Shanghai"  # Timezone for cron triggers
+
+    # RAG / AI Coach Configuration
+    VECTOR_STORE: str = "auto"  # "auto" (pgvector if PG, disabled if SQLite), "pgvector", "chromadb", "disabled"
+    CHROMA_PERSIST_DIR: str = "data/chroma"  # ChromaDB persistent storage directory (only for chromadb backend)
+    RAG_CHUNK_SIZE: int = 512  # Text chunk size for RAG indexing
+    RAG_CHUNK_OVERLAP: int = 50  # Overlap between chunks
+    RAG_SIMILARITY_TOP_K: int = 3  # Number of similar chunks to retrieve
+    # Embedding API (for RAG semantic search). Many chat APIs (e.g. DeepSeek) do not provide embeddings.
+    # If set, these are used for embeddings only; LLM_* remain for chat.
+    EMBEDDING_API_KEY: str = ""  # Optional; falls back to LLM_API_KEY if empty
+    EMBEDDING_BASE_URL: str = ""  # Optional; e.g. https://api.openai.com/v1 — falls back to LLM_BASE_URL
+    EMBEDDING_MODEL: str = ""  # Optional; e.g. text-embedding-3-small — falls back to LLM_EMBEDDING_MODEL
+    LLM_EMBEDDING_MODEL: str = "text-embedding-3-small"  # Default embedding model when EMBEDDING_MODEL not set
+
     # Translation Agent Configuration
     TRANSLATION_MAX_FILE_SIZE_BYTES: int = 10_485_760  # 10 MB; max upload file size
     TRANSLATION_MAX_SOURCE_LENGTH: int = 12_000  # Max source text length (chars) sent to LLM; truncate if exceeded

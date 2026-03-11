@@ -60,6 +60,10 @@ from app.services.secretary_agent.sub_agents.productivity import (
     create_productivity_agent,
     create_productivity_tools,
 )
+from app.services.secretary_agent.sub_agents.coach import (
+    create_coach_agent,
+    create_coach_tools,
+)
 from app.services.secretary_agent.sub_agents.utility import (
     create_utility_agent,
     create_utility_tools,
@@ -82,9 +86,10 @@ SUPERVISOR = "supervisor"
 LEARNING_AGENT = "learning_agent"
 PRODUCTIVITY_AGENT = "productivity_agent"
 UTILITY_AGENT = "utility_agent"
+COACH_AGENT = "coach_agent"
 
 # All sub-agent names
-SUB_AGENT_NAMES = [LEARNING_AGENT, PRODUCTIVITY_AGENT, UTILITY_AGENT]
+SUB_AGENT_NAMES = [LEARNING_AGENT, PRODUCTIVITY_AGENT, UTILITY_AGENT, COACH_AGENT]
 
 # Maximum number of supervisor routing loops before forcing END
 MAX_ROUTING_ITERATIONS = 10
@@ -92,7 +97,7 @@ MAX_ROUTING_ITERATIONS = 10
 
 class RoutingDecision(BaseModel):
     """Structured output for supervisor routing decisions."""
-    next: Literal["learning_agent", "productivity_agent", "utility_agent", "FINISH"] = Field(
+    next: Literal["learning_agent", "productivity_agent", "utility_agent", "coach_agent", "FINISH"] = Field(
         description="The next agent to route to, or FINISH if the user's request has been fully handled"
     )
 
@@ -191,6 +196,13 @@ class SecretaryAgent:
 
         utility = create_utility_agent(llm=self.llm)
 
+        coach = create_coach_agent(
+            llm=self.llm,
+            db=self.db,
+            user_id=self.user_id,
+            session_id=self.session_id,
+        )
+
         # Supervisor prompt for routing decisions
         supervisor_prompt = get_prompt(
             "sub_agents.yaml",
@@ -238,6 +250,8 @@ class SecretaryAgent:
                     next_agent = "learning_agent"
                 elif "productivity" in content:
                     next_agent = "productivity_agent"
+                elif "coach" in content:
+                    next_agent = "coach_agent"
                 elif "utility" in content:
                     next_agent = "utility_agent"
                 else:
@@ -261,6 +275,7 @@ class SecretaryAgent:
         graph.add_node(learning)
         graph.add_node(productivity)
         graph.add_node(utility)
+        graph.add_node(coach)
 
         # Wire the edges
         graph.add_edge(START, SUPERVISOR)
@@ -273,6 +288,7 @@ class SecretaryAgent:
                 LEARNING_AGENT: LEARNING_AGENT,
                 PRODUCTIVITY_AGENT: PRODUCTIVITY_AGENT,
                 UTILITY_AGENT: UTILITY_AGENT,
+                COACH_AGENT: COACH_AGENT,
                 END: END,
             },
         )
@@ -281,6 +297,7 @@ class SecretaryAgent:
         graph.add_edge(LEARNING_AGENT, SUPERVISOR)
         graph.add_edge(PRODUCTIVITY_AGENT, SUPERVISOR)
         graph.add_edge(UTILITY_AGENT, SUPERVISOR)
+        graph.add_edge(COACH_AGENT, SUPERVISOR)
 
         # Compile the workflow
         compiled = graph.compile()
@@ -315,6 +332,13 @@ class SecretaryAgent:
             )
         )
         all_tools.extend(create_utility_tools())
+        all_tools.extend(
+            create_coach_tools(
+                db=self.db,
+                user_id=self.user_id,
+                session_id=self.session_id,
+            )
+        )
         return all_tools
 
     # ========================================================================

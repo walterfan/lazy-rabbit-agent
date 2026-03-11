@@ -14,7 +14,6 @@ medical-paper-agent-runbook
 ai-workflow-design
 ai-workflow-hld
 ai-workflow-hld-mermaid
-csms-agent-troubleshooting-guide-improved
 langchain_overview
 langchain_quick_start
 llm_intergration
@@ -28,6 +27,5 @@ graph_rag
 - **Secretary**: personal-secretary-runbook, personal-secretary-architecture
 - **Medical paper**: medical-paper-agent-runbook
 - **AI workflow**: ai-workflow-design, ai-workflow-hld, ai-workflow-hld-mermaid
-- **Troubleshooting**: csms-agent-troubleshooting-guide-improved
 - **LangChain / LLM**: langchain_overview, langchain_quick_start, llm_intergration
 - **Graph / RAG**: knowledge_graph, graph_rag

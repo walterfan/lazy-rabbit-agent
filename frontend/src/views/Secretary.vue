@@ -16,6 +16,15 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const showSidebar = ref(true);
 const showTools = ref(false);
 
+// Transport mode toggle
+function toggleTransport() {
+  const next = secretaryStore.transport === 'sse' ? 'ws' : 'sse';
+  secretaryStore.setTransport(next);
+  if (next === 'ws') {
+    // WS will auto-fetch sessions on connect
+  }
+}
+
 // Scroll to bottom when new messages arrive
 function scrollToBottom() {
   nextTick(() => {
@@ -37,15 +46,15 @@ watch(
   () => scrollToBottom()
 );
 
-// Handle sending message
+// Handle sending message — auto-dispatches to SSE or WS
 async function handleSend(message: string) {
   const sessionId = secretaryStore.currentSession?.id || null;
   
   try {
-    await secretaryStore.sendMessageStream(
+    await secretaryStore.sendMessageAuto(
       message,
       sessionId || undefined,
-      // onToken
+      // onToken (SSE only — WS tokens are handled in store)
       () => {
         scrollToBottom();
       },
@@ -60,7 +69,7 @@ async function handleSend(message: string) {
       // onComplete
       () => {
         // Refresh session list
-        secretaryStore.listSessions();
+        secretaryStore.listSessionsAuto();
       }
     );
   } catch (err) {
@@ -68,14 +77,14 @@ async function handleSend(message: string) {
   }
 }
 
-// Handle session selection
+// Handle session selection — auto-dispatch
 async function handleSelectSession(session: ChatSession) {
-  await secretaryStore.getSession(session.id);
+  await secretaryStore.getSessionAuto(session.id);
 }
 
-// Handle session deletion
+// Handle session deletion — auto-dispatch
 async function handleDeleteSession(sessionId: string) {
-  await secretaryStore.deleteSession(sessionId);
+  await secretaryStore.deleteSessionAuto(sessionId);
 }
 
 // Handle new session
@@ -129,7 +138,7 @@ defineExpose({
 // Initialize
 onMounted(async () => {
   // Load sessions
-  await secretaryStore.listSessions();
+  await secretaryStore.listSessionsAuto();
   
   // Load tools
   await secretaryStore.loadTools();
@@ -194,6 +203,35 @@ onMounted(async () => {
         </div>
         
         <div class="flex items-center gap-2">
+          <!-- Transport Mode Toggle -->
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all"
+            :class="secretaryStore.transport === 'ws'
+              ? (secretaryStore.wsConnected
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200')
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            :title="secretaryStore.transport === 'ws'
+              ? `WebSocket ${secretaryStore.wsConnected ? '已连接' : '连接中...'} (${secretaryStore.wsOnlineCount} 在线)`
+              : 'SSE 模式 (点击切换到 WebSocket)'"
+            @click="toggleTransport"
+          >
+            <span
+              v-if="secretaryStore.transport === 'ws'"
+              class="w-2 h-2 rounded-full"
+              :class="secretaryStore.wsConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'"
+            />
+            <span v-else class="w-2 h-2 rounded-full bg-gray-400" />
+            {{ secretaryStore.transport === 'ws' ? 'WS' : 'SSE' }}
+            <span
+              v-if="secretaryStore.transport === 'ws' && secretaryStore.wsConnected"
+              class="text-[10px] opacity-70"
+            >
+              ({{ secretaryStore.wsOnlineCount }})
+            </span>
+          </button>
+
           <router-link
             to="/learning"
             class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

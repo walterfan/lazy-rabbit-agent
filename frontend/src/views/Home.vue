@@ -55,6 +55,14 @@ const agents = [
     route: '/philosophy',
     color: 'from-cyan-500 to-sky-600',
   },
+  {
+    id: 'coach',
+    name: 'AI Coach',
+    icon: '🎓',
+    description: 'Personal learning coach with 3 modes: coaching, tutoring, and quiz — powered by your knowledge base',
+    route: '/coach',
+    color: 'from-amber-500 to-orange-600',
+  },
 ]
 
 // Define available tools

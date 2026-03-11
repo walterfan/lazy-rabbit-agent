@@ -1,0 +1,142 @@
+# ============================================================================
+# Lazy Rabbit Agent — Production Docker Compose
+# Services: nginx (HTTPS/WSS) + backend (FastAPI) + frontend (build) + DB + Redis + ChromaDB
+# ============================================================================
+#
+# Usage:
+#   # First time: generate self-signed certs or use Let's Encrypt
+#   ./scripts/gen-certs.sh
+#
+#   # Start all services
+#   docker compose up -d
+#
+#   # View logs
+#   docker compose logs -f backend
+#
+#   # Rebuild after code changes
+#   docker compose up -d --build backend frontend
+#
+# ============================================================================
+
+services:
+
+  # ---------- Nginx Reverse Proxy (HTTPS + WSS) ----------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: lra-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - frontend-dist:/var/www/html:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - lra-network
+
+  # ---------- Backend (FastAPI + Uvicorn) ----------
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: lra-backend
+    restart: unless-stopped
+    expose:
+      - "8000"
+    volumes:
+      - backend-data:/app/data
+      - backend-logs:/app/logs
+    env_file:
+      - .env.production
+    environment:
+      - TZ=Asia/Shanghai
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/app.db}
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - lra-network
+
+  # ---------- Frontend (Build stage → copy to volume) ----------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: lra-frontend-build
+    volumes:
+      - frontend-dist:/dist
+    # This container exits after build; nginx reads from the volume
+    restart: "no"
+
+  # ---------- PostgreSQL (production DB) ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: lra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-lra}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-lazy_rabbit}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lra-network
+
+  # ---------- Redis (cache + Celery broker) ----------
+  redis:
+    image: redis:7-alpine
+    container_name: lra-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lra-network
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  frontend-dist:
+    driver: local
+  backend-data:
+    driver: local
+  backend-logs:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
+
+# ============================================================================
+# Network
+# ============================================================================
+networks:
+  lra-network:
+    driver: bridge

@@ -58,6 +58,9 @@ class User(Base):
     chat_sessions = relationship("ChatSession", back_populates="user", lazy="dynamic")
     learning_records = relationship("LearningRecord", back_populates="user", lazy="dynamic")
     medical_paper_tasks = relationship("MedicalPaperTask", back_populates="user", lazy="dynamic")
+    knowledge_documents = relationship("KnowledgeDocument", back_populates="user", lazy="dynamic")
+    learning_goals = relationship("LearningGoal", back_populates="user", lazy="dynamic")
+    study_sessions = relationship("StudySession", back_populates="user", lazy="dynamic")
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"

@@ -13,6 +13,9 @@ import Learning from '@/views/Learning.vue'
 import MedicalPaper from '@/views/MedicalPaper.vue'
 import Translation from '@/views/Translation.vue'
 import PhilosophyMaster from '@/views/PhilosophyMaster.vue'
+import Coach from '@/views/Coach.vue'
+import KnowledgeBase from '@/views/KnowledgeBase.vue'
+import LearningPlan from '@/views/LearningPlan.vue'
 import CalculatorTool from '@/views/tools/CalculatorTool.vue'
 import DateTimeTool from '@/views/tools/DateTimeTool.vue'
 import NotesTool from '@/views/tools/NotesTool.vue'
@@ -69,6 +72,18 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
+    path: '/admin/scheduler',
+    name: 'admin-scheduler',
+    component: () => import('@/views/admin/JobScheduler.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/llm-settings',
+    name: 'admin-llm-settings',
+    component: () => import('@/views/admin/LLMSettings.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/rbac/roles',
     name: 'role-management',
     component: () => import('@/views/rbac/RoleManagement.vue'),
@@ -120,6 +135,25 @@ const routes: Array<RouteRecordRaw> = [
     path: '/philosophy',
     name: 'philosophy-master',
     component: PhilosophyMaster,
+    meta: { requiresAuth: true },
+  },
+  // AI Coach
+  {
+    path: '/coach',
+    name: 'coach',
+    component: Coach,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/knowledge',
+    name: 'knowledge-base',
+    component: KnowledgeBase,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/learning-plan',
+    name: 'learning-plan',
+    component: LearningPlan,
     meta: { requiresAuth: true },
   },
   // Tool pages

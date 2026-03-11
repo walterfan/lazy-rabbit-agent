@@ -11,6 +11,8 @@ A modern web application for LLM (Large Language Model) interaction with a clean
 - **Authentication**: JWT-based user authentication
 - **Database**: SQLAlchemy ORM with repository pattern
 - **Configuration**: Environment-based configuration management
+- **AI Coach**: Personal learning coach with 3 modes (coaching, tutoring, quiz), RAG-powered knowledge base, learning goal tracking, and study session logging
+- **Knowledge Base**: Upload documents (text/PDF/MD), semantic search via ChromaDB + OpenAI embeddings
 
 ## Architecture
 
@@ -130,6 +132,10 @@ LBS_API_KEY=your-lbs-api-key-here
 
 # Debug
 DEBUG_FLAG=false
+
+# AI Coach / RAG Configuration
+CHROMA_PERSIST_DIR=data/chroma          # ChromaDB storage directory
+LLM_EMBEDDING_MODEL=text-embedding-3-small  # OpenAI embedding model
 ```
 
 ### Frontend Configuration
@@ -184,6 +190,37 @@ socket.onopen = () => {
     ]
   }));
 };
+```
+
+#### AI Coach API
+
+```bash
+# Create a learning goal
+curl -X POST "http://localhost:8000/api/v1/coach/goals" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"subject": "Python 进阶", "daily_target_minutes": 30}'
+
+# Log a study session
+curl -X POST "http://localhost:8000/api/v1/coach/sessions" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"goal_id": "...", "duration_minutes": 25, "difficulty": "medium"}'
+
+# Chat with coach (SSE streaming)
+curl "http://localhost:8000/api/v1/coach/chat/stream?message=帮我制定学习计划&mode=coach&token=$TOKEN"
+
+# Upload knowledge document
+curl -X POST "http://localhost:8000/api/v1/knowledge/documents" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Python Notes", "content": "...", "tags": ["python"]}'
+
+# Semantic search
+curl -X POST "http://localhost:8000/api/v1/knowledge/query" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "如何使用装饰器", "top_k": 5}'
 ```
 
 ## Development

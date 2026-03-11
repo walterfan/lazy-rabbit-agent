@@ -4,11 +4,15 @@ from app.api.v1.endpoints import (
     admin,
     admin_recommendations,
     auth,
+    backup,
     cities,
+    coach,
     emails,
-    philosophy,
+    knowledge,
     learning,
+    llm_settings,
     medical_paper,
+    philosophy,
     rbac,
     recommendations,
     scheduled,
@@ -64,6 +68,18 @@ api_router.include_router(translation.router, prefix="/translation", tags=["tran
 
 # Include Philosophy Master routes
 api_router.include_router(philosophy.router, prefix="/philosophy", tags=["philosophy-master"])
+
+# Include Knowledge base routes (RAG documents, query)
+api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledge"])
+
+# Include Coach routes (goals, sessions, progress, chat)
+api_router.include_router(coach.router, prefix="/coach", tags=["coach"])
+
+# Include Database Backup routes
+api_router.include_router(backup.router, prefix="/backup", tags=["backup"])
+
+# Include LLM Settings routes (per-user LLM configuration)
+api_router.include_router(llm_settings.router, prefix="/llm-settings", tags=["llm-settings"])
 
 
 
