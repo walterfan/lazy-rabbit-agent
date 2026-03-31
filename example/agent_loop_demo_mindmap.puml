@@ -1,0 +1,128 @@
+@startmindmap
+title Agent Loop 演示程序思维导图
+
+* agent_loop_demo.py\n智能体循环演示
+
+** 📌 程序用途
+*** 最小化的 LLM 智能体循环演示
+*** 支持工作空间安全的文件操作
+*** 典型任务场景
+**** 撰写博客草稿
+**** 将英文文章翻译为中文
+**** 读取并改写文件
+*** 基于 ReAct 模式\n推理→行动→观察 循环
+
+** 📦 数据类 (dataclass)
+*** ToolResult 工具执行结果
+**** for_llm: 给模型看的输出
+**** for_user: 给用户看的输出
+**** ok: 是否成功
+*** Action 动作指令
+**** kind: 动作类型 (tool / final)
+**** tool_name: 工具名称
+**** tool_args: 工具参数字典
+**** final_text: 最终回复文本
+
+** 🔧 AgentTools 智能体工具集
+*** list_dir 列出目录内容
+*** read_file 读取文件
+**** 最大读取 4096000 字符
+**** 超长自动截断
+*** write_file 写入文件
+**** 自动创建父目录
+*** append_file 追加写入文件
+*** get_current_datetime 获取当前日期时间
+**** 返回人类可读格式
+**** 返回 ISO 8601 格式
+*** 🔒 沙箱安全机制 _safe_path
+**** 所有路径限制在工作空间内
+**** 路径逃逸时抛出 ValueError
+
+** 🧠 记忆系统
+*** ShortTermMemory 短期记忆
+**** 滚动窗口机制 (默认20条)
+**** 存储在内存中
+**** 保留最近 N 轮对话
+**** render_for_prompt() 渲染为提示文本
+*** LongTermMemory 长期记忆
+**** 持久化为 JSON 文件
+**** 基于关键词评分召回 recall()
+**** 存储历史任务结果
+**** 最多保留 200 条记录
+**** 跨运行共享
+
+** 📝 SYSTEM_PROMPT 系统提示词
+*** 定义智能体角色: 本地工作空间代理
+*** 列出 5 个可用工具及参数格式
+*** 规定严格的 JSON 响应格式
+*** 约束: 每次只返回一个 JSON 对象
+*** 规则: 先读后写、保留格式
+
+** 🤖 LLMClient 大模型客户端
+*** 基于 OpenAI 兼容 SDK
+*** 支持流式输出 (streaming)
+*** 使用 httpx 自定义 HTTP 客户端
+**** 支持自签名证书
+**** 90秒超时设置
+*** 配置项
+**** api_base: API 端点地址
+**** model: 模型名称
+**** api_key: API 密钥
+**** temperature: 温度参数
+
+** 🔄 Agent Loop 智能体主循环
+*** 循环流程
+**** 1️⃣ 构建系统提示词 + 记忆上下文
+**** 2️⃣ 调用 LLM 获取响应
+**** 3️⃣ 解析 JSON 为 Action 对象
+**** 4️⃣ 判断动作类型
+***** action=tool → 执行对应工具
+***** action=final → 输出结果并终止
+**** 5️⃣ 将工具结果作为观察反馈
+**** 6️⃣ 存入短期记忆后继续循环
+*** 终止条件
+**** 收到 final 类型动作
+**** 达到最大循环次数
+**** 发生不可恢复的错误
+
+left side
+
+** 🖥️ CLI 命令行入口
+*** 使用 argparse 解析参数
+*** --task 参数: 指定任务描述
+*** --workspace 参数: 指定工作空间路径
+*** 主函数 main() 启动循环
+*** 支持 .env 环境变量配置
+**** LLM_BASE_URL
+**** LLM_API_KEY
+**** LLM_MODEL
+**** LLM_TEMPERATURE
+**** LLM_STREAM
+**** LLM_SYSTEM_PROMPT_TEMPLATE
+
+** 🛡️ 错误处理与设计模式
+*** 路径沙箱化防止越权访问
+*** JSON 解析失败的优雅降级
+*** 工具执行异常的捕获与反馈
+*** ReAct 模式: 推理→行动→观察
+*** 记忆分层: 短期 + 长期协同
+*** 每条记忆内容限制长度防溢出
+
+** 📊 技术栈与依赖
+*** Python 3.x
+*** openai SDK (OpenAI 兼容)
+*** httpx HTTP 客户端
+*** dataclasses 标准库
+*** argparse 标准库
+*** json / os / re / pathlib 标准库
+*** datetime 标准库
+
+** 🔑 核心设计理念
+*** 最小可行智能体 (Minimal Viable Agent)
+*** 工具增强的语言模型 (Tool-Augmented LLM)
+*** 安全优先的文件操作
+*** 可扩展的工具注册机制
+*** 对话历史驱动的上下文管理
+*** 长短期记忆协同工作
+
+@endmindmap

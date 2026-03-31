@@ -229,8 +229,8 @@ class BackendValidator:
             "Seed script includes recommendation.admin permission",
             self.validate_file_contains(seed_script, [
                 "recommendation.admin",
-                "resource\": \"recommendation\"",
-                "action\": \"admin\""
+                "resource": "recommendation"",
+                "action": "admin""
             ])
         )
         self.test(

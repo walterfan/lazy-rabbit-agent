@@ -19,7 +19,7 @@ echo ""
 echo "📝 Step 1: Logging in as admin..."
 LOGIN_RESPONSE=$(curl -s -X POST "${BASE_URL}/auth/signin" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"${ADMIN_EMAIL}\",\"password\":\"${ADMIN_PASSWORD}\"}")
+  -d "{"email":"${ADMIN_EMAIL}","password":"${ADMIN_PASSWORD}"}")
 
 TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)
 
@@ -37,7 +37,7 @@ echo "📝 Step 2: Generating 3-day recommendations (no email)..."
 GEN_RESPONSE=$(curl -s -X POST "${BASE_URL}/admin/recommendations/generate-for-user" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
-  -d "{\"user_id\":${TARGET_USER_ID},\"city_code\":\"${CITY_CODE}\",\"send_email\":false}")
+  -d "{"user_id":${TARGET_USER_ID},"city_code":"${CITY_CODE}","send_email":false}")
 
 echo "$GEN_RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$GEN_RESPONSE"
 echo ""
@@ -66,7 +66,7 @@ echo "📝 Step 3: Generating 3-day recommendations (with email)..."
 EMAIL_RESPONSE=$(curl -s -X POST "${BASE_URL}/admin/recommendations/generate-for-user" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
-  -d "{\"user_id\":${TARGET_USER_ID},\"city_code\":\"${CITY_CODE}\",\"send_email\":true}")
+  -d "{"user_id":${TARGET_USER_ID},"city_code":"${CITY_CODE}","send_email":true}")
 
 echo "$EMAIL_RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$EMAIL_RESPONSE"
 echo ""

@@ -205,7 +205,7 @@ class StreamingRecommendationService:
 
             days = max(1, min(int(days), 3))
 
-            # Fetch N-day forecast via WeatherHelper (uses extensions=\"all\")
+            # Fetch N-day forecast via WeatherHelper (uses extensions="all")
             forecasts = await WeatherHelper(self.db).get_forecast(city_obj.ad_code, days=days)
             if not forecasts:
                 raise ValueError(f"城市 '{city_obj.ad_code}' 没有可用的天气预报数据")
