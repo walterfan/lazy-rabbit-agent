@@ -1245,7 +1245,7 @@ async def traced_llm_call(prompt: str, model: str, response_model, **kwargs):
     "timestamp": "2026-02-04T10:30:43.600Z",
     "tool_name": "learn_word",
     "tool_args": {"word": "serendipity"},
-    "tool_result": "{\"word\": \"serendipity\", \"pronunciation\": \"/ˌser.ənˈdɪp.ə.ti/\", ...}",
+    "tool_result": "{"word": "serendipity", "pronunciation": "/ˌser.ənˈdɪp.ə.ti/", ...}",
     "duration_ms": 1523.45,
     "status": "success",
     "user_id": 42,
